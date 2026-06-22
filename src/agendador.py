@@ -8,6 +8,49 @@ from regras import REGRAS_GRUPO
 from oracao import ORACOES_DO_DIA, DEVOCIONAIS, PERGUNTAS_ENGAJAMENTO
 from config import CHANNEL_ID, GROUP_ID
 
+ENQUETES_SEMANAIS = [
+    {
+        "pergunta": "🎵 Qual estilo de música gospel você mais ama?",
+        "opcoes": ["Hinos tradicionais", "Gospel contemporâneo", "Adoração e louvor", "Música instrumental", "Sertanejo gospel"]
+    },
+    {
+        "pergunta": "📖 Qual livro da Bíblia você mais gosta de ler?",
+        "opcoes": ["Salmos", "Provérbios", "João", "Romanos", "Apocalipse"]
+    },
+    {
+        "pergunta": "🙏 Como você costuma orar?",
+        "opcoes": ["De manhã ao acordar", "À noite antes de dormir", "Durante o dia quando preciso", "Em momentos específicos", "O tempo todo"]
+    },
+    {
+        "pergunta": "✝️ O que mais te edifica espiritualmente?",
+        "opcoes": ["Orar", "Ler a Bíblia", "Louvar e adorar", "Comunhão com irmãos", "Jejum e oração"]
+    },
+    {
+        "pergunta": "🌅 Qual é o seu versículo favorito?",
+        "opcoes": ["Filipenses 4:13", "João 3:16", "Jeremias 29:11", "Salmos 23:1", "Romanos 8:28"]
+    },
+    {
+        "pergunta": "🔥 O que significa avivamento para você?",
+        "opcoes": ["Renovação espiritual pessoal", "Crescimento da Igreja", "Milagres e curas", "Conversão de almas", "Todas as opções acima"]
+    },
+    {
+        "pergunta": "⛪ Com que frequência você vai à igreja?",
+        "opcoes": ["Todo domingo", "Várias vezes por semana", "Uma vez por mês", "Em datas especiais", "Assisto online"]
+    },
+    {
+        "pergunta": "💪 Como você enfrenta os momentos difíceis?",
+        "opcoes": ["Com oração intensa", "Lendo a Palavra", "Com apoio dos irmãos", "Louvor mesmo na dor", "Todas as anteriores"]
+    },
+    {
+        "pergunta": "🌟 Qual promessa bíblica mais te fortalece?",
+        "opcoes": ["\"Tudo posso em Cristo\"", "\"Nunca te deixarei\"", "\"Sou contigo\"", "\"Planos de prosperidade\"", "\"O amor de Deus\""]
+    },
+    {
+        "pergunta": "🕊️ Como você descreveria sua relação com Deus hoje?",
+        "opcoes": ["Muito próxima e crescendo", "Boa, mas quero mais", "Passando por desafios", "Estou me reconectando", "Em constante busca"]
+    },
+]
+
 logger = logging.getLogger(__name__)
 
 LINK_CANAL = "https://t.me/avivamentoad"
@@ -169,6 +212,29 @@ async def postar_devocional_grupo(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Erro ao postar devocional no grupo: {e}")
 
+async def postar_enquete_grupo(context: ContextTypes.DEFAULT_TYPE):
+    try:
+        enquete = random.choice(ENQUETES_SEMANAIS)
+        await context.bot.send_poll(
+            chat_id=GROUP_ID,
+            question=enquete["pergunta"],
+            options=enquete["opcoes"],
+            is_anonymous=False,
+            allows_multiple_answers=False,
+        )
+        # Mensagem de incentivo junto com a enquete
+        await context.bot.send_message(
+            GROUP_ID,
+            "🗳️ *ENQUETE DA SEMANA!*\n\n"
+            "Participe e compartilhe sua opinião! Adoramos conhecer melhor nossa família espiritual. 🙏\n\n"
+            "_\"Onde não há sábios conselheiros, o povo perece; mas havendo muitos conselheiros, há prosperidade.\"_ — Provérbios 11:14\n\n"
+            f"[📤 Convide alguém para participar]({LINK_GRUPO})",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        logger.info("Enquete semanal postada no grupo.")
+    except Exception as e:
+        logger.error(f"Erro ao postar enquete: {e}")
+
 # ─── AGENDAMENTOS ─────────────────────────────────────────────────────────────
 
 def configurar_agendamentos(app):
@@ -220,6 +286,11 @@ def configurar_agendamentos(app):
 
     # Regras a cada 4 horas
     scheduler.add_job(lambda: __import__('asyncio').ensure_future(postar_regras_grupo(ctx())), CronTrigger(hour="*/4", minute=30))
+
+    # Enquete semanal: toda segunda-feira às 10h
+    scheduler.add_job(lambda: __import__('asyncio').ensure_future(postar_enquete_grupo(ctx())), CronTrigger(day_of_week="mon", hour=10, minute=0))
+    # Enquete extra: toda quinta-feira às 19h
+    scheduler.add_job(lambda: __import__('asyncio').ensure_future(postar_enquete_grupo(ctx())), CronTrigger(day_of_week="thu", hour=19, minute=0))
 
     scheduler.start()
     logger.info("✅ Todos os agendamentos configurados!")
