@@ -10,7 +10,8 @@ from comandos import (
     cmd_postar_regras, cmd_postar_oracao, cmd_postar_engajamento,
     cmd_banir, cmd_silenciar, cmd_liberar, cmd_resetar_avisos,
     cmd_anuncio, cmd_fixar,
-    cmd_status, cmd_listar_midia, cmd_limpar_videos, cmd_limpar_imagens, cmd_ver_pedidos
+    cmd_status, cmd_listar_midia, cmd_limpar_videos, cmd_limpar_imagens, cmd_ver_pedidos,
+    cmd_chatid
 )
 from handlers import (
     handle_novo_membro, handle_mensagem_grupo,
@@ -60,6 +61,9 @@ def main():
     app.add_handler(CommandHandler("resetar_avisos", cmd_resetar_avisos))
     app.add_handler(CommandHandler("anuncio", cmd_anuncio))
     app.add_handler(CommandHandler("fixar", cmd_fixar))
+
+    # Utilitários
+    app.add_handler(CommandHandler("chatid", cmd_chatid))
 
     # Estatísticas
     app.add_handler(CommandHandler("status", cmd_status))
