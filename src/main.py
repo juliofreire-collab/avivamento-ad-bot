@@ -11,11 +11,12 @@ from comandos import (
     cmd_banir, cmd_silenciar, cmd_liberar, cmd_resetar_avisos,
     cmd_anuncio, cmd_fixar,
     cmd_status, cmd_listar_midia, cmd_limpar_videos, cmd_limpar_imagens, cmd_ver_pedidos,
-    cmd_chatid, cmd_enquete
+    cmd_chatid, cmd_enquete,
+    cmd_testemunho, cmd_ver_testemunhos, cmd_postar_testemunho
 )
 from handlers import (
     handle_novo_membro, handle_mensagem_grupo,
-    handle_midia_privado, handle_saida_membro
+    handle_midia_privado, handle_saida_membro, handle_texto_privado
 )
 from agendador import configurar_agendamentos
 
@@ -62,6 +63,11 @@ def main():
     app.add_handler(CommandHandler("anuncio", cmd_anuncio))
     app.add_handler(CommandHandler("fixar", cmd_fixar))
 
+    # Testemunhos
+    app.add_handler(CommandHandler("testemunho", cmd_testemunho))
+    app.add_handler(CommandHandler("ver_testemunhos", cmd_ver_testemunhos))
+    app.add_handler(CommandHandler("postar_testemunho", cmd_postar_testemunho))
+
     # Utilitários
     app.add_handler(CommandHandler("chatid", cmd_chatid))
     app.add_handler(CommandHandler("enquete", cmd_enquete))
@@ -84,6 +90,12 @@ def main():
     app.add_handler(MessageHandler(
         (filters.VIDEO | filters.PHOTO | filters.Document.ALL) & filters.ChatType.PRIVATE,
         handle_midia_privado
+    ))
+
+    # Texto no privado — recebe testemunhos de membros
+    app.add_handler(MessageHandler(
+        filters.TEXT & filters.ChatType.PRIVATE & ~filters.COMMAND,
+        handle_texto_privado
     ))
 
     # Agendamentos
