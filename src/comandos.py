@@ -330,6 +330,18 @@ async def cmd_limpar_imagens(update: Update, context: ContextTypes.DEFAULT_TYPE)
     limpar_imagens()
     await update.message.reply_text("✅ Imagens removidas.")
 
+async def cmd_chatid(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat = update.effective_chat
+    user = update.effective_user
+    await update.message.reply_text(
+        f"📋 *Informações do Chat*\n\n"
+        f"🆔 Chat ID: `{chat.id}`\n"
+        f"📝 Nome: {chat.title or chat.first_name}\n"
+        f"🔹 Tipo: {chat.type}\n"
+        f"👤 Seu ID: `{user.id}`",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
 async def cmd_ver_pedidos(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await is_admin(update, context):
         await update.message.reply_text("❌ Apenas administradores.")
