@@ -149,12 +149,49 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
             except Exception as e:
                 logger.error(f"Erro ao banir: {e}")
 
+async def handle_texto_privado(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat.type != "private":
+        return
+    user_id = update.effective_user.id
+    texto = update.message.text or ""
+    if texto.startswith("/"):
+        return
+
+    # Se é mensagem de texto no privado (não do dono), pode ser testemunho
+    if user_id != OWNER_ID and len(texto) > 20:
+        from testemunhos import salvar_testemunho
+        nome = update.effective_user.first_name or "Membro"
+        salvar_testemunho(nome, user_id, texto)
+        await update.message.reply_text(
+            f"🌟 *Testemunho recebido, {nome}!*\n\n"
+            f"_{texto[:100]}{'...' if len(texto) > 100 else ''}_\n\n"
+            f"Seu testemunho foi registrado e será publicado no canal em breve! 🙏\n\n"
+            f"_\"E venceram-no pelo sangue do Cordeiro e pela palavra do seu testemunho.\"_ — Apocalipse 12:11",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        # Notificar dono
+        if OWNER_ID:
+            try:
+                await context.bot.send_message(
+                    OWNER_ID,
+                    f"🌟 *Novo testemunho recebido!*\n\n"
+                    f"De: *{nome}*\n\n"
+                    f"_{texto[:200]}{'...' if len(texto) > 200 else ''}_\n\n"
+                    f"Use /ver_testemunhos para ver todos os pendentes.",
+                    parse_mode=ParseMode.MARKDOWN
+                )
+            except:
+                pass
+
 async def handle_midia_privado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
     if user_id != OWNER_ID:
         await update.message.reply_text(
-            "❌ Apenas o dono do bot pode enviar mídias para postagem no canal."
+            "❌ Apenas o dono do bot pode enviar mídias para postagem no canal.\n\n"
+            "💬 Se quiser enviar um *testemunho* para ser publicado no canal, "
+            "basta digitar aqui e eu recebo! 🙏",
+            parse_mode=ParseMode.MARKDOWN
         )
         return
 
