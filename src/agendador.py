@@ -212,6 +212,33 @@ async def postar_devocional_grupo(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Erro ao postar devocional no grupo: {e}")
 
+async def postar_testemunho_canal(context: ContextTypes.DEFAULT_TYPE):
+    try:
+        from testemunhos import get_proximo_testemunho_nao_publicado
+        t = get_proximo_testemunho_nao_publicado()
+        if not t:
+            logger.info("Nenhum testemunho pendente para postar.")
+            return
+        texto = (
+            f'🌟 *TESTEMUNHO DA SEMANA*\n\n'
+            f'_{t["texto"]}_\n\n'
+            f'✝️ — *{t["nome"]}*\n\n'
+            f'🕊️ *Avivamento AD*\n\n'
+            f'[📤 Compartilhe esta bênção]({LINK_CANAL})'
+        )
+        await context.bot.send_message(CHANNEL_ID, texto, parse_mode=ParseMode.MARKDOWN)
+        # Avisar o grupo também
+        await context.bot.send_message(
+            GROUP_ID,
+            f'🌟 *TESTEMUNHO DA SEMANA no canal!*\n\n'
+            f'Acesse o canal para ler e se edificar!\n'
+            f'[👉 Ver no canal]({LINK_CANAL})',
+            parse_mode=ParseMode.MARKDOWN
+        )
+        logger.info(f"Testemunho de {t['nome']} postado no canal.")
+    except Exception as e:
+        logger.error(f"Erro ao postar testemunho: {e}")
+
 async def postar_enquete_grupo(context: ContextTypes.DEFAULT_TYPE):
     try:
         enquete = random.choice(ENQUETES_SEMANAIS)
@@ -291,6 +318,9 @@ def configurar_agendamentos(app):
     scheduler.add_job(lambda: __import__('asyncio').ensure_future(postar_enquete_grupo(ctx())), CronTrigger(day_of_week="mon", hour=10, minute=0))
     # Enquete extra: toda quinta-feira às 19h
     scheduler.add_job(lambda: __import__('asyncio').ensure_future(postar_enquete_grupo(ctx())), CronTrigger(day_of_week="thu", hour=19, minute=0))
+
+    # Testemunho no canal: toda sexta-feira às 17h
+    scheduler.add_job(lambda: __import__('asyncio').ensure_future(postar_testemunho_canal(ctx())), CronTrigger(day_of_week="fri", hour=17, minute=0))
 
     scheduler.start()
     logger.info("✅ Todos os agendamentos configurados!")
