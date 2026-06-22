@@ -330,6 +330,17 @@ async def cmd_limpar_imagens(update: Update, context: ContextTypes.DEFAULT_TYPE)
     limpar_imagens()
     await update.message.reply_text("✅ Imagens removidas.")
 
+async def cmd_enquete(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await is_admin(update, context):
+        await update.message.reply_text("❌ Apenas administradores podem enviar enquetes.")
+        return
+    from agendador import postar_enquete_grupo
+    class Ctx:
+        bot = context.bot
+    await postar_enquete_grupo(Ctx())
+    if update.effective_chat.id != int(GROUP_ID):
+        await update.message.reply_text("✅ Enquete enviada ao grupo!")
+
 async def cmd_chatid(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat
     user = update.effective_user
