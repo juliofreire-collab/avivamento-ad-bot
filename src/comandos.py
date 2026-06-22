@@ -330,6 +330,69 @@ async def cmd_limpar_imagens(update: Update, context: ContextTypes.DEFAULT_TYPE)
     limpar_imagens()
     await update.message.reply_text("✅ Imagens removidas.")
 
+async def cmd_testemunho(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if context.args:
+        texto = " ".join(context.args)
+        if len(texto) < 20:
+            await update.message.reply_text("⚠️ O testemunho está muito curto. Escreva mais detalhes! 🙏")
+            return
+        from testemunhos import salvar_testemunho
+        nome = update.effective_user.first_name or "Membro"
+        user_id = update.effective_user.id
+        salvar_testemunho(nome, user_id, texto)
+        await update.message.reply_text(
+            f"🌟 *Testemunho registrado, {nome}!*\n\n"
+            f"Será publicado no canal em breve! 🙏\n\n"
+            f"_\"E venceram-no pelo sangue do Cordeiro e pela palavra do seu testemunho.\"_ — Apocalipse 12:11",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        if update.effective_chat.type != "private" and OWNER_ID:
+            try:
+                await context.bot.send_message(
+                    OWNER_ID,
+                    f"🌟 *Novo testemunho!*\nDe: *{nome}*\n\n_{texto[:300]}_",
+                    parse_mode=ParseMode.MARKDOWN
+                )
+            except:
+                pass
+    else:
+        await update.message.reply_text(
+            "🌟 *SISTEMA DE TESTEMUNHOS*\n\n"
+            "Para enviar seu testemunho, você tem 2 opções:\n\n"
+            "1️⃣ Use o comando:\n`/testemunho [seu testemunho]`\n\n"
+            "2️⃣ Envie uma mensagem de texto direto no privado do bot *@Avivamento_bot*\n\n"
+            "Seu testemunho será publicado no canal toda *sexta-feira às 17h*! 🕊️\n\n"
+            "_\"E venceram-no pelo sangue do Cordeiro e pela palavra do seu testemunho.\"_ — Apocalipse 12:11",
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+async def cmd_ver_testemunhos(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await is_admin(update, context):
+        await update.message.reply_text("❌ Apenas administradores.")
+        return
+    from testemunhos import get_testemunhos_pendentes
+    pendentes = get_testemunhos_pendentes()
+    if not pendentes:
+        await update.message.reply_text("🌟 Nenhum testemunho pendente no momento.")
+        return
+    texto = f"🌟 *{len(pendentes)} TESTEMUNHOS PENDENTES*\n\n"
+    for i, t in enumerate(pendentes[:5], 1):
+        texto += f"*{i}. {t['nome']}* ({t['data']}):\n_{t['texto'][:150]}{'...' if len(t['texto']) > 150 else ''}_\n\n"
+    if len(pendentes) > 5:
+        texto += f"_...e mais {len(pendentes)-5} testemunhos._\n\n"
+    texto += "Use /postar_testemunho para publicar o próximo no canal."
+    await update.message.reply_text(texto, parse_mode=ParseMode.MARKDOWN)
+
+async def cmd_postar_testemunho(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not await is_admin(update, context):
+        await update.message.reply_text("❌ Apenas administradores.")
+        return
+    from agendador import postar_testemunho_canal
+    class Ctx:
+        bot = context.bot
+    await postar_testemunho_canal(Ctx())
+    await update.message.reply_text("✅ Testemunho postado no canal!")
+
 async def cmd_enquete(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await is_admin(update, context):
         await update.message.reply_text("❌ Apenas administradores podem enviar enquetes.")
