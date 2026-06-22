@@ -11,7 +11,7 @@ from comandos import (
     cmd_banir, cmd_silenciar, cmd_liberar, cmd_resetar_avisos,
     cmd_anuncio, cmd_fixar,
     cmd_status, cmd_listar_midia, cmd_limpar_videos, cmd_limpar_imagens, cmd_ver_pedidos,
-    cmd_chatid
+    cmd_chatid, cmd_enquete
 )
 from handlers import (
     handle_novo_membro, handle_mensagem_grupo,
@@ -64,6 +64,7 @@ def main():
 
     # Utilitários
     app.add_handler(CommandHandler("chatid", cmd_chatid))
+    app.add_handler(CommandHandler("enquete", cmd_enquete))
 
     # Estatísticas
     app.add_handler(CommandHandler("status", cmd_status))
