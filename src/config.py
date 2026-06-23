@@ -3,7 +3,7 @@ import os
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8981755295:AAF_BaXcWlUuasIfDoao3787lJNMJMCiUd4")
 CHANNEL_ID = os.getenv("CHANNEL_ID", "@avivamentoad")
 GROUP_ID = os.getenv("GROUP_ID", "-1003537178026")
-OWNER_ID = int(os.getenv("OWNER_ID", "1087968824"))
+OWNER_ID = int(os.getenv("OWNER_ID", "8725437154"))
 
 # Palavrões detectados apenas como PALAVRAS COMPLETAS (não dentro de outras palavras)
 # Ex: "cu" NÃO vai bloquear "acupuntura", "recuperar", etc.
