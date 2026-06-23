@@ -974,25 +974,30 @@ async def cmd_saude(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from aniversarios import total_cadastrados
     from ranking import get_top_ranking
 
+    import pytz
+    from datetime import datetime as _dt
+    _tz = pytz.timezone("America/Sao_Paulo")
+    agora = _dt.now(_tz).strftime("%d/%m/%Y %H:%M")
+
     erros = []
-    linhas = ["🏥 *RELATÓRIO DE SAÚDE — AVIVAMENTO AD*\n"]
+    linhas = [f"<b>🏥 RELATÓRIO DE SAÚDE — AVIVAMENTO AD</b>", f"⏱ {agora}\n"]
 
     # ── Banco de dados ──────────────────────────────────────────
-    linhas.append("🗄️ *Banco de Dados*")
+    linhas.append("<b>🗄️ Banco de Dados (PostgreSQL)</b>")
     tabelas = ["media","ranking","oracao","aniversarios","testemunhos","avisos","palavras_bloqueadas"]
     try:
         with db() as cur:
             for tabela in tabelas:
                 cur.execute(f"SELECT COUNT(*) AS n FROM {tabela}")
                 n = cur.fetchone()["n"]
-                linhas.append(f"  • `{tabela}`: {n} registro(s)")
+                linhas.append(f"  • <code>{tabela}</code>: {n} registro(s)")
         linhas.append("  ✅ Conexão com o banco OK\n")
     except Exception as e:
         erros.append(f"Banco: {e}")
         linhas.append(f"  ❌ Erro no banco: {e}\n")
 
     # ── Filas de conteúdo ───────────────────────────────────────
-    linhas.append("📦 *Filas de Conteúdo*")
+    linhas.append("<b>📦 Filas de Conteúdo</b>")
     try:
         videos = total_videos()
         imagens = total_imagens()
@@ -1000,20 +1005,20 @@ async def cmd_saude(update: Update, context: ContextTypes.DEFAULT_TYPE):
         testemunhos = len(get_testemunhos_pendentes())
         palavras_c = len(carregar_palavras_custom())
         aniversarios_total = total_cadastrados()
-        ranking_top = get_top_ranking(1)
-        linhas.append(f"  🎥 Vídeos na fila: *{videos}*")
-        linhas.append(f"  🖼️ Imagens na fila: *{imagens}*")
-        linhas.append(f"  🙏 Pedidos de oração pendentes: *{pedidos}*")
-        linhas.append(f"  🌟 Testemunhos aguardando publicação: *{testemunhos}*")
-        linhas.append(f"  🎂 Aniversariantes cadastrados: *{aniversarios_total}*")
-        linhas.append(f"  🏆 Usuários no ranking: *{len(get_top_ranking(1000))}*")
-        linhas.append(f"  🚫 Palavras extras bloqueadas: *{palavras_c}*\n")
+        usuarios_ranking = len(get_top_ranking(1000))
+        linhas.append(f"  🎥 Vídeos na fila: <b>{videos}</b>")
+        linhas.append(f"  🖼️ Imagens na fila: <b>{imagens}</b>")
+        linhas.append(f"  🙏 Pedidos de oração pendentes: <b>{pedidos}</b>")
+        linhas.append(f"  🌟 Testemunhos aguardando publicação: <b>{testemunhos}</b>")
+        linhas.append(f"  🎂 Aniversariantes cadastrados: <b>{aniversarios_total}</b>")
+        linhas.append(f"  🏆 Usuários no ranking: <b>{usuarios_ranking}</b>")
+        linhas.append(f"  🚫 Palavras extras bloqueadas: <b>{palavras_c}</b>\n")
     except Exception as e:
         erros.append(f"Filas: {e}")
         linhas.append(f"  ❌ Erro: {e}\n")
 
     # ── JobQueue / Agendamentos ─────────────────────────────────
-    linhas.append("⏰ *Agendamentos (JobQueue)*")
+    linhas.append("<b>⏰ Agendamentos (JobQueue)</b>")
     try:
         jq = context.application.job_queue
         if jq is None:
@@ -1027,7 +1032,7 @@ async def cmd_saude(update: Update, context: ContextTypes.DEFAULT_TYPE):
         linhas.append(f"  ❌ Erro: {e}\n")
 
     # ── Conectividade Telegram ──────────────────────────────────
-    linhas.append("📡 *Conectividade Telegram*")
+    linhas.append("<b>📡 Conectividade Telegram</b>")
     try:
         bot_info = await context.bot.get_me()
         linhas.append(f"  ✅ Bot: @{bot_info.username}")
@@ -1051,11 +1056,11 @@ async def cmd_saude(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # ── Resultado ───────────────────────────────────────────────
     if erros:
-        linhas.append(f"⚠️ *{len(erros)} problema(s) detectado(s):*")
+        linhas.append(f"⚠️ <b>{len(erros)} problema(s) detectado(s):</b>")
         for err in erros:
             linhas.append(f"  • {err}")
     else:
-        linhas.append("✅ *Tudo funcionando perfeitamente!*")
-        linhas.append("🕊️ _Que Deus abençoe este ministério!_")
+        linhas.append("✅ <b>Tudo funcionando perfeitamente!</b>")
+        linhas.append("🕊️ <i>Que Deus abençoe este ministério!</i>")
 
-    await context.bot.send_message(destino, "\n".join(linhas), parse_mode=ParseMode.MARKDOWN)
+    await context.bot.send_message(destino, "\n".join(linhas), parse_mode=ParseMode.HTML)
