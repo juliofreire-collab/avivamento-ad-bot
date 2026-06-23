@@ -15,7 +15,7 @@ from comandos import (
     cmd_anuncio, cmd_fixar,
     cmd_bloquear, cmd_desbloquear, cmd_listanegra,
     cmd_status, cmd_listar_midia, cmd_limpar_videos, cmd_limpar_imagens, cmd_ver_pedidos,
-    cmd_chatid, cmd_enquete,
+    cmd_chatid, cmd_enquete, cmd_saude,
     cmd_testemunho, cmd_ver_testemunhos, cmd_postar_testemunho,
     cmd_ranking, cmd_postar_ranking,
     cmd_aniversario
@@ -177,6 +177,7 @@ def main():
     app.add_handler(CommandHandler("limpar_imagens", cmd_limpar_imagens))
     app.add_handler(CommandHandler("ver_pedidos", cmd_ver_pedidos))
     app.add_handler(CommandHandler("chatid", cmd_chatid))
+    app.add_handler(CommandHandler("saude", cmd_saude))
     app.add_handler(CommandHandler("testar", cmd_testar))
 
     # ── Eventos de grupo ──
