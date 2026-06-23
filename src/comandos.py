@@ -958,3 +958,104 @@ async def cmd_chatid(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"🔑 Dono registrado: `{OWNER_ID}`",
         parse_mode=ParseMode.MARKDOWN
     )
+
+async def cmd_saude(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Diagnóstico completo do bot — apenas para o dono."""
+    await deletar_comando(update)
+    if update.effective_user.id != OWNER_ID:
+        return
+
+    destino = update.effective_user.id
+
+    await context.bot.send_message(destino, "🔍 Verificando saúde do bot… aguarde.")
+
+    from database import db
+    from testemunhos import get_testemunhos_pendentes
+    from aniversarios import total_cadastrados
+    from ranking import get_top_ranking
+
+    erros = []
+    linhas = ["🏥 *RELATÓRIO DE SAÚDE — AVIVAMENTO AD*\n"]
+
+    # ── Banco de dados ──────────────────────────────────────────
+    linhas.append("🗄️ *Banco de Dados*")
+    tabelas = ["media","ranking","oracao","aniversarios","testemunhos","avisos","palavras_bloqueadas"]
+    try:
+        with db() as cur:
+            for tabela in tabelas:
+                cur.execute(f"SELECT COUNT(*) AS n FROM {tabela}")
+                n = cur.fetchone()["n"]
+                linhas.append(f"  • `{tabela}`: {n} registro(s)")
+        linhas.append("  ✅ Conexão com o banco OK\n")
+    except Exception as e:
+        erros.append(f"Banco: {e}")
+        linhas.append(f"  ❌ Erro no banco: {e}\n")
+
+    # ── Filas de conteúdo ───────────────────────────────────────
+    linhas.append("📦 *Filas de Conteúdo*")
+    try:
+        videos = total_videos()
+        imagens = total_imagens()
+        pedidos = len(get_pedidos_pendentes())
+        testemunhos = len(get_testemunhos_pendentes())
+        palavras_c = len(carregar_palavras_custom())
+        aniversarios_total = total_cadastrados()
+        ranking_top = get_top_ranking(1)
+        linhas.append(f"  🎥 Vídeos na fila: *{videos}*")
+        linhas.append(f"  🖼️ Imagens na fila: *{imagens}*")
+        linhas.append(f"  🙏 Pedidos de oração pendentes: *{pedidos}*")
+        linhas.append(f"  🌟 Testemunhos aguardando publicação: *{testemunhos}*")
+        linhas.append(f"  🎂 Aniversariantes cadastrados: *{aniversarios_total}*")
+        linhas.append(f"  🏆 Usuários no ranking: *{len(get_top_ranking(1000))}*")
+        linhas.append(f"  🚫 Palavras extras bloqueadas: *{palavras_c}*\n")
+    except Exception as e:
+        erros.append(f"Filas: {e}")
+        linhas.append(f"  ❌ Erro: {e}\n")
+
+    # ── JobQueue / Agendamentos ─────────────────────────────────
+    linhas.append("⏰ *Agendamentos (JobQueue)*")
+    try:
+        jq = context.application.job_queue
+        if jq is None:
+            linhas.append("  ❌ JobQueue inativo!\n")
+            erros.append("JobQueue inativo")
+        else:
+            jobs = jq.jobs()
+            linhas.append(f"  ✅ {len(jobs)} jobs agendados ativos\n")
+    except Exception as e:
+        erros.append(f"JobQueue: {e}")
+        linhas.append(f"  ❌ Erro: {e}\n")
+
+    # ── Conectividade Telegram ──────────────────────────────────
+    linhas.append("📡 *Conectividade Telegram*")
+    try:
+        bot_info = await context.bot.get_me()
+        linhas.append(f"  ✅ Bot: @{bot_info.username}")
+    except Exception as e:
+        erros.append(f"Bot API: {e}")
+        linhas.append(f"  ❌ Erro: {e}")
+
+    try:
+        chat_info = await context.bot.get_chat(GROUP_ID)
+        linhas.append(f"  ✅ Grupo: {chat_info.title}")
+    except Exception as e:
+        erros.append(f"Grupo: {e}")
+        linhas.append(f"  ❌ Grupo inacessível: {e}")
+
+    try:
+        ch_info = await context.bot.get_chat(CHANNEL_ID)
+        linhas.append(f"  ✅ Canal: {ch_info.title}\n")
+    except Exception as e:
+        erros.append(f"Canal: {e}")
+        linhas.append(f"  ❌ Canal inacessível: {e}\n")
+
+    # ── Resultado ───────────────────────────────────────────────
+    if erros:
+        linhas.append(f"⚠️ *{len(erros)} problema(s) detectado(s):*")
+        for err in erros:
+            linhas.append(f"  • {err}")
+    else:
+        linhas.append("✅ *Tudo funcionando perfeitamente!*")
+        linhas.append("🕊️ _Que Deus abençoe este ministério!_")
+
+    await context.bot.send_message(destino, "\n".join(linhas), parse_mode=ParseMode.MARKDOWN)
