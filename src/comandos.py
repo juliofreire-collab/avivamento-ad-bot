@@ -7,7 +7,7 @@ import os
 import random
 from config import OWNER_ID, CHANNEL_ID, GROUP_ID
 from media_manager import total_videos, total_imagens, limpar_videos, limpar_imagens
-from oracao import salvar_pedido, carregar_pedidos, get_pedidos_pendentes
+from oracao import salvar_pedido, get_pedidos_pendentes
 from avisos import resetar_avisos, get_avisos
 
 logger = logging.getLogger(__name__)

@@ -310,6 +310,15 @@ async def postar_testemunho_canal(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Erro ao postar testemunho: {e}")
 
+async def _resetar_ranking_mensal(context: ContextTypes.DEFAULT_TYPE):
+    """Job mensal: zera os pontos do ranking no dia 1 de cada mês."""
+    try:
+        from ranking import resetar_ranking_mensal
+        resetar_ranking_mensal()
+        logger.info("🔄 Ranking mensal resetado automaticamente.")
+    except Exception as e:
+        logger.error(f"Erro ao resetar ranking mensal: {e}")
+
 async def postar_enquete_grupo(context: ContextTypes.DEFAULT_TYPE):
     try:
         enquete = random.choice(ENQUETES_SEMANAIS)
@@ -380,5 +389,8 @@ def configurar_agendamentos(app):
     jq.run_daily(postar_ranking_grupo, time=dtime(20, 30, tzinfo=tz), days=(6,))
 
     jq.run_daily(verificar_aniversarios, time=dtime(8, 30, tzinfo=tz))
+
+    # Dia 1 de cada mês à meia-noite: zera ranking mensal
+    jq.run_monthly(_resetar_ranking_mensal, when=dtime(0, 0, tzinfo=tz), day=1)
 
     logger.info("✅ Todos os agendamentos configurados!")

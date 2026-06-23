@@ -243,12 +243,16 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
     except:
         pass
 
-    # Pontuar participação no grupo (máx 5x/dia por membro)
-    try:
-        from ranking import adicionar_pontos
-        adicionar_pontos(user_id, user.first_name or "Membro", "mensagem")
-    except:
-        pass
+    # Detectar palavrão antes de pontuar (quem manda palavrão não ganha ponto)
+    tem_palavrao = contem_palavrao(texto)
+
+    # Pontuar participação no grupo (máx 5x/dia, apenas mensagens limpas)
+    if not tem_palavrao:
+        try:
+            from ranking import adicionar_pontos
+            adicionar_pontos(user_id, user.first_name or "Membro", "mensagem")
+        except:
+            pass
 
     # Detectar pedido de oração via texto livre
     texto_lower = texto.lower()
@@ -268,7 +272,7 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
         )
 
     # Filtro de palavrões
-    if contem_palavrao(texto):
+    if tem_palavrao:
         try:
             await update.message.delete()
         except Exception as e:
