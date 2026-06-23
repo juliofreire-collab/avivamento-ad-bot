@@ -12,7 +12,7 @@ def registrar_aviso(user_id: int) -> int:
                 INSERT INTO avisos (user_id, avisos, ultimo)
                 VALUES (%s, 1, %s)
                 ON CONFLICT (user_id) DO UPDATE
-                    SET avisos = avisos + 1,
+                    SET avisos = avisos.avisos + 1,
                         ultimo = EXCLUDED.ultimo
                 RETURNING avisos
             """, (user_id, agora))
