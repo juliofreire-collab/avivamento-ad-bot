@@ -86,3 +86,16 @@ def limpar_imagens():
         logger.info("Imagens removidas do banco.")
     except Exception as e:
         logger.error(f"Erro ao limpar imagens: {e}")
+
+def carregar_media() -> dict:
+    """Compatibilidade: retorna {'videos': [...], 'imagens': [...]}."""
+    try:
+        with db() as cur:
+            cur.execute("SELECT file_id, tipo, caption FROM media ORDER BY id")
+            rows = cur.fetchall()
+        videos = [dict(r) for r in rows if r["tipo"] == "video"]
+        imagens = [dict(r) for r in rows if r["tipo"] == "imagem"]
+        return {"videos": videos, "imagens": imagens}
+    except Exception as e:
+        logger.error(f"Erro ao carregar mídia: {e}")
+        return {"videos": [], "imagens": []}

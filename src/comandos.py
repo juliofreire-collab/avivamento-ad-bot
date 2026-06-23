@@ -6,13 +6,13 @@ import json
 import os
 import random
 from config import OWNER_ID, CHANNEL_ID, GROUP_ID
-from media_manager import carregar_media, total_videos, total_imagens, limpar_videos, limpar_imagens
+from media_manager import total_videos, total_imagens, limpar_videos, limpar_imagens
 from oracao import salvar_pedido, carregar_pedidos, get_pedidos_pendentes
 from avisos import resetar_avisos, get_avisos
 
 logger = logging.getLogger(__name__)
 
-PALAVRAS_CUSTOM_FILE = "palavras_custom.json"
+PALAVRAS_CUSTOM_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "palavras_custom.json")
 
 def carregar_palavras_custom():
     if os.path.exists(PALAVRAS_CUSTOM_FILE):
@@ -160,7 +160,7 @@ async def cmd_horarios(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "• 07h10 — Versículo bíblico\n"
         "• 08h00 — Devocional\n"
         "• 10h00 — Pergunta de engajamento\n"
-        "• 10h00 _(seg)_ — Enquete semanal\n"
+        "• 10h30 _(seg)_ — Enquete semanal\n"
         "• 13h00 — Versículo bíblico\n"
         "• 15h00 — Pergunta de engajamento\n"
         "• 19h00 _(qui)_ — Enquete extra\n"

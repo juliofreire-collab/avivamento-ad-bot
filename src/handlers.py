@@ -395,10 +395,9 @@ async def handle_midia_privado(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     if salvo:
-        import media_manager as mm
-        media = mm.carregar_media()
-        total_v = len(media["videos"])
-        total_i = len(media["imagens"])
+        from media_manager import total_videos, total_imagens
+        total_v = total_videos()
+        total_i = total_imagens()
         await update.message.reply_text(
             f"✅ *{tipo} salvo com sucesso!*\n\n"
             f"📊 Total armazenado:\n"
