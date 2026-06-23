@@ -2,7 +2,7 @@ import logging
 import sys
 from telegram import BotCommand, BotCommandScopeAllGroupChats, BotCommandScopeAllPrivateChats, BotCommandScopeDefault
 from telegram.ext import (
-    Application, CommandHandler, MessageHandler, filters
+    Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 )
 from config import BOT_TOKEN
 from comandos import (
@@ -20,7 +20,8 @@ from comandos import (
 )
 from handlers import (
     handle_novo_membro, handle_mensagem_grupo,
-    handle_midia_privado, handle_saida_membro, handle_texto_privado
+    handle_midia_privado, handle_saida_membro, handle_texto_privado,
+    handle_aceitar_regras
 )
 from agendador import configurar_agendamentos
 
@@ -175,6 +176,9 @@ def main():
         filters.TEXT & filters.ChatType.PRIVATE & ~filters.COMMAND,
         handle_texto_privado
     ))
+
+    # ── Botão "Aceito as Regras" — verificação de novo membro ──
+    app.add_handler(CallbackQueryHandler(handle_aceitar_regras, pattern=r"^aceitar_regras:"))
 
     # ── Agendamentos ──
     configurar_agendamentos(app)
