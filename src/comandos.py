@@ -199,12 +199,66 @@ async def cmd_devocional(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.MARKDOWN
     )
 
+async def cmd_ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from ranking import get_top_ranking, get_pontos_usuario
+    top = get_top_ranking(10)
+    meu_id = str(update.effective_user.id)
+    meus_pontos = get_pontos_usuario(update.effective_user.id)
+    medalhas = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+
+    if not top or all(p == 0 for _, _, p in top):
+        await update.message.reply_text(
+            "🏆 *RANKING DE ENGAJAMENTO*\n\n"
+            "Ainda não há pontuação registrada.\n\n"
+            "🌟 *Como ganhar pontos:*\n"
+            "• Enviar testemunho: +10 pts\n"
+            "• Pedido de oração: +5 pts\n"
+            "• Participar de perguntas: +3 pts\n"
+            "• Mensagens no grupo: +1 pt/dia\n\n"
+            "_Comece participando agora!_ 🙏",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+
+    texto = "🏆 *RANKING DE ENGAJAMENTO*\n\n"
+    for i, (uid, nome, pontos) in enumerate(top):
+        medalha = medalhas[i] if i < len(medalhas) else f"{i+1}."
+        destaque = " ◀️ você" if uid == meu_id else ""
+        texto += f"{medalha} *{nome}* — {pontos} pts{destaque}\n"
+
+    texto += (
+        f"\n📊 Seus pontos: *{meus_pontos} pts*\n\n"
+        "🌟 *Como ganhar pontos:*\n"
+        "• /testemunho → +10 pts\n"
+        "• /oracao → +5 pts\n"
+        "• Participar de perguntas → +3 pts\n"
+        "• Mensagens no grupo → +1 pt/dia\n\n"
+        "_\"Portanto, encorajai-vos uns aos outros.\"_ — 1 Tessalonicenses 5:11"
+    )
+    await update.message.reply_text(texto, parse_mode=ParseMode.MARKDOWN)
+
+async def cmd_postar_ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await deletar_comando(update)
+    if not await is_admin(update, context):
+        return
+    from agendador import postar_ranking_grupo
+    class Ctx:
+        bot = context.bot
+    await postar_ranking_grupo(Ctx())
+    destino = update.effective_user.id if update.effective_chat.type in ["group", "supergroup"] else update.effective_chat.id
+    await context.bot.send_message(destino, "✅ Ranking postado no grupo!")
+
 async def cmd_oracao(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.args:
         pedido = " ".join(context.args)
         nome = update.effective_user.first_name or "Membro"
         user_id = update.effective_user.id
         salvar_pedido(nome, user_id, pedido)
+        try:
+            from ranking import adicionar_pontos
+            adicionar_pontos(user_id, nome, "oracao")
+        except:
+            pass
         await update.message.reply_text(
             f"🙏 *Pedido de oração registrado!*\n\n"
             f"_{pedido}_\n\n"
@@ -679,6 +733,11 @@ async def cmd_testemunho(update: Update, context: ContextTypes.DEFAULT_TYPE):
         nome = update.effective_user.first_name or "Membro"
         user_id = update.effective_user.id
         salvar_testemunho(nome, user_id, texto)
+        try:
+            from ranking import adicionar_pontos
+            adicionar_pontos(user_id, nome, "testemunho")
+        except:
+            pass
         await update.message.reply_text(
             f"🌟 *Testemunho registrado, {nome}!*\n\nSerá publicado no canal em breve! 🙏\n\n_\"E venceram-no pelo sangue do Cordeiro e pela palavra do seu testemunho.\"_ — Apocalipse 12:11",
             parse_mode=ParseMode.MARKDOWN
