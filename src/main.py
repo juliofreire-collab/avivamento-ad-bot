@@ -17,7 +17,8 @@ from comandos import (
     cmd_status, cmd_listar_midia, cmd_limpar_videos, cmd_limpar_imagens, cmd_ver_pedidos,
     cmd_chatid, cmd_enquete,
     cmd_testemunho, cmd_ver_testemunhos, cmd_postar_testemunho,
-    cmd_ranking, cmd_postar_ranking
+    cmd_ranking, cmd_postar_ranking,
+    cmd_aniversario
 )
 from handlers import (
     handle_novo_membro, handle_mensagem_grupo,
@@ -45,6 +46,8 @@ COMANDOS_USUARIOS = [
     BotCommand("regras", "Ver as regras do grupo"),
     BotCommand("oracao", "Ver e enviar pedidos de oração"),
     BotCommand("testemunho", "Enviar um testemunho para o canal"),
+    BotCommand("ranking", "Ver ranking de engajamento do grupo"),
+    BotCommand("aniversario", "Cadastrar seu aniversário: /aniversario DD/MM"),
 ]
 
 COMANDOS_ADMINS = [
@@ -81,6 +84,9 @@ COMANDOS_ADMINS = [
     BotCommand("ver_pedidos", "Ver pedidos de oração pendentes"),
     BotCommand("listar_midia", "Ver mídias salvas na fila"),
     BotCommand("chatid", "Ver ID do chat ou usuário"),
+    BotCommand("ranking", "Ver ranking de engajamento do grupo"),
+    BotCommand("postar_ranking", "Postar ranking agora no grupo"),
+    BotCommand("aniversario", "Cadastrar seu aniversário: /aniversario DD/MM"),
 ]
 
 async def post_init(app):
@@ -153,6 +159,9 @@ def main():
     # ── Ranking ──
     app.add_handler(CommandHandler("ranking", cmd_ranking))
     app.add_handler(CommandHandler("postar_ranking", cmd_postar_ranking))
+
+    # ── Aniversários ──
+    app.add_handler(CommandHandler("aniversario", cmd_aniversario))
 
     # ── Estatísticas ──
     app.add_handler(CommandHandler("status", cmd_status))
