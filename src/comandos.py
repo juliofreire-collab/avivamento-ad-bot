@@ -199,6 +199,58 @@ async def cmd_devocional(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.MARKDOWN
     )
 
+async def cmd_aniversario(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from aniversarios import registrar_aniversario, get_aniversario, total_cadastrados
+    user = update.effective_user
+    user_id = user.id
+    nome = user.first_name or "Membro"
+
+    if not context.args:
+        aniv = get_aniversario(user_id)
+        if aniv:
+            await update.message.reply_text(
+                f"🎂 *Seu aniversário cadastrado:* {aniv['dia']:02d}/{aniv['mes']:02d}\n\n"
+                f"Para alterar: /aniversario DD/MM\n"
+                f"_Ex: /aniversario 25/12_",
+                parse_mode=ParseMode.MARKDOWN
+            )
+        else:
+            await update.message.reply_text(
+                "🎂 *Cadastre seu aniversário!*\n\n"
+                "Use: /aniversario DD/MM\n"
+                "_Ex: /aniversario 25/12_\n\n"
+                "O bot enviará uma mensagem especial no grupo e no seu privado no dia! 🎉",
+                parse_mode=ParseMode.MARKDOWN
+            )
+        return
+
+    entrada = context.args[0].strip()
+    try:
+        partes = entrada.split("/")
+        dia = int(partes[0])
+        mes = int(partes[1])
+        if not (1 <= dia <= 31 and 1 <= mes <= 12):
+            raise ValueError
+    except:
+        await update.message.reply_text(
+            "❌ Formato inválido. Use: /aniversario DD/MM\n_Ex: /aniversario 25/12_",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        return
+
+    registrar_aniversario(user_id, nome, dia, mes)
+    total = total_cadastrados()
+    await update.message.reply_text(
+        f"🎂 *Aniversário cadastrado!*\n\n"
+        f"📅 Data: *{dia:02d}/{mes:02d}*\n"
+        f"👤 Nome: *{nome}*\n\n"
+        f"No seu aniversário o bot vai:\n"
+        f"• 🎉 Celebrar com você no grupo\n"
+        f"• 💌 Enviar mensagem especial no seu privado\n\n"
+        f"_Já são {total} membros cadastrados!_ 🙏",
+        parse_mode=ParseMode.MARKDOWN
+    )
+
 async def cmd_ranking(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from ranking import get_top_ranking, get_pontos_usuario
     top = get_top_ranking(10)
