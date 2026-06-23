@@ -16,7 +16,8 @@ from comandos import (
     cmd_bloquear, cmd_desbloquear, cmd_listanegra,
     cmd_status, cmd_listar_midia, cmd_limpar_videos, cmd_limpar_imagens, cmd_ver_pedidos,
     cmd_chatid, cmd_enquete,
-    cmd_testemunho, cmd_ver_testemunhos, cmd_postar_testemunho
+    cmd_testemunho, cmd_ver_testemunhos, cmd_postar_testemunho,
+    cmd_ranking, cmd_postar_ranking
 )
 from handlers import (
     handle_novo_membro, handle_mensagem_grupo,
@@ -148,6 +149,10 @@ def main():
     # ── Testemunhos ──
     app.add_handler(CommandHandler("ver_testemunhos", cmd_ver_testemunhos))
     app.add_handler(CommandHandler("postar_testemunho", cmd_postar_testemunho))
+
+    # ── Ranking ──
+    app.add_handler(CommandHandler("ranking", cmd_ranking))
+    app.add_handler(CommandHandler("postar_ranking", cmd_postar_ranking))
 
     # ── Estatísticas ──
     app.add_handler(CommandHandler("status", cmd_status))
