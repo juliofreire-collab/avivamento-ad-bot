@@ -1,12 +1,12 @@
 import logging
 import re
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 from telegram import ChatPermissions
 from datetime import datetime, timedelta
 from config import OWNER_ID, GROUP_ID, PALAVROES_EXATOS
-from regras import BOAS_VINDAS_TEMPLATE, REGRAS_GRUPO
+from regras import REGRAS_GRUPO
 from media_manager import adicionar_video, adicionar_imagem
 from avisos import registrar_aviso, get_avisos
 from oracao import salvar_pedido
@@ -15,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 LINK_CANAL = "https://t.me/avivamentoad"
 LINK_GRUPO = "https://t.me/+FALJMPVXpj1kOGQx"
+
+# Guarda mensagens de verificação pendentes: {user_id: message_id}
+_verificacoes_pendentes: dict = {}
 
 def contem_palavrao(texto: str) -> bool:
     texto_lower = texto.lower()
@@ -41,6 +44,37 @@ async def is_group_admin(bot, user_id: int) -> bool:
     except:
         return False
 
+async def _auto_kick_pendente(context: ContextTypes.DEFAULT_TYPE):
+    """Expulsa membro que não clicou no botão dentro do prazo"""
+    data = context.job.data
+    user_id = data["user_id"]
+    chat_id = data["chat_id"]
+    msg_id = data["msg_id"]
+    nome = data["nome"]
+
+    if user_id not in _verificacoes_pendentes:
+        return  # Já aceitou, não faz nada
+
+    try:
+        await context.bot.delete_message(chat_id, msg_id)
+    except:
+        pass
+
+    try:
+        await context.bot.ban_chat_member(chat_id, user_id)
+        await context.bot.unban_chat_member(chat_id, user_id)
+        await context.bot.send_message(
+            chat_id,
+            f"⏰ *{nome}* não aceitou as regras em 5 minutos e foi removido(a).\n"
+            f"_Poderá voltar pelo link de convite quando estiver pronto(a)._",
+            parse_mode=ParseMode.MARKDOWN
+        )
+        logger.info(f"Membro {nome} ({user_id}) removido por não aceitar as regras.")
+    except Exception as e:
+        logger.error(f"Erro ao expulsar membro inativo: {e}")
+
+    _verificacoes_pendentes.pop(user_id, None)
+
 async def handle_novo_membro(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         for membro in update.message.new_chat_members:
@@ -48,8 +82,21 @@ async def handle_novo_membro(update: Update, context: ContextTypes.DEFAULT_TYPE)
                 continue
 
             nome = membro.first_name or "Irmão(ã)"
-            boas_vindas = BOAS_VINDAS_TEMPLATE.format(nome=nome)
+            chat_id = update.effective_chat.id
 
+            # 1. Restringir imediatamente até aceitar as regras
+            try:
+                perms_bloqueado = ChatPermissions(
+                    can_send_messages=False,
+                    can_send_media_messages=False,
+                    can_send_polls=False,
+                    can_send_other_messages=False
+                )
+                await context.bot.restrict_chat_member(chat_id, membro.id, perms_bloqueado)
+            except Exception as e:
+                logger.warning(f"Não foi possível restringir {nome}: {e}")
+
+            # 2. Buscar foto de perfil
             foto_id = None
             try:
                 fotos = await context.bot.get_user_profile_photos(membro.id, limit=1)
@@ -58,24 +105,114 @@ async def handle_novo_membro(update: Update, context: ContextTypes.DEFAULT_TYPE)
             except:
                 pass
 
+            # 3. Montar mensagem de boas-vindas com botão
+            texto = (
+                f"🙏 *Seja muito bem-vindo(a), {nome}!*\n\n"
+                f"Você entrou na família *Avivamento AD*! ✝️\n\n"
+                f"Para participar do grupo, por favor *leia e aceite as regras* clicando no botão abaixo.\n\n"
+                f"⏰ _Você tem 5 minutos para aceitar, ou será removido(a) automaticamente._\n\n"
+                f"📖 _\"Porque onde estiverem dois ou três reunidos em meu nome, ali estou eu no meio deles.\"_ — Mateus 18:20"
+            )
+
+            botao = InlineKeyboardMarkup([[
+                InlineKeyboardButton(
+                    "✅ Li e Aceito as Regras",
+                    callback_data=f"aceitar_regras:{membro.id}"
+                )
+            ]])
+
+            # 4. Enviar boas-vindas com ou sem foto
             if foto_id:
-                await context.bot.send_photo(
-                    update.effective_chat.id,
-                    photo=foto_id,
-                    caption=boas_vindas,
-                    parse_mode=ParseMode.MARKDOWN
+                msg = await context.bot.send_photo(
+                    chat_id, photo=foto_id,
+                    caption=texto, parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=botao
                 )
             else:
-                await context.bot.send_message(
-                    update.effective_chat.id,
-                    boas_vindas,
-                    parse_mode=ParseMode.MARKDOWN
+                msg = await context.bot.send_message(
+                    chat_id, texto,
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=botao
                 )
 
-            logger.info(f"Boas-vindas enviadas para: {nome} ({membro.id})")
+            # 5. Registrar verificação pendente
+            _verificacoes_pendentes[membro.id] = msg.message_id
+
+            # 6. Agendar auto-kick em 5 minutos
+            context.job_queue.run_once(
+                _auto_kick_pendente,
+                when=300,
+                data={"user_id": membro.id, "chat_id": chat_id, "msg_id": msg.message_id, "nome": nome},
+                name=f"kick_{membro.id}"
+            )
+
+            logger.info(f"Boas-vindas com verificação enviadas para: {nome} ({membro.id})")
 
     except Exception as e:
         logger.error(f"Erro ao receber novo membro: {e}")
+
+async def handle_aceitar_regras(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Callback quando membro clica em 'Aceito as Regras'"""
+    query = update.callback_query
+    data = query.data
+
+    if not data.startswith("aceitar_regras:"):
+        return
+
+    user_id_alvo = int(data.split(":")[1])
+    user_clicou = query.from_user.id
+    nome = query.from_user.first_name or "Membro"
+    chat_id = query.message.chat_id
+
+    # Só o próprio membro pode clicar no seu botão
+    if user_clicou != user_id_alvo:
+        await query.answer("⚠️ Este botão é apenas para o novo membro.", show_alert=True)
+        return
+
+    # Liberar permissões completas
+    try:
+        perms_livre = ChatPermissions(
+            can_send_messages=True,
+            can_send_media_messages=True,
+            can_send_polls=True,
+            can_send_other_messages=True,
+            can_add_web_page_previews=True,
+            can_invite_users=True
+        )
+        await context.bot.restrict_chat_member(chat_id, user_id_alvo, perms_livre)
+    except Exception as e:
+        logger.error(f"Erro ao liberar {nome}: {e}")
+
+    # Remover da lista de pendentes
+    _verificacoes_pendentes.pop(user_id_alvo, None)
+
+    # Cancelar o job de auto-kick
+    jobs = context.job_queue.get_jobs_by_name(f"kick_{user_id_alvo}")
+    for job in jobs:
+        job.schedule_removal()
+
+    # Apagar a mensagem com o botão
+    try:
+        await query.message.delete()
+    except:
+        pass
+
+    # Confirmar e dar boas-vindas completas com as regras
+    await context.bot.send_message(
+        chat_id,
+        f"✅ *{nome} aceitou as regras e já pode participar!*\n\n"
+        f"🙏 Que Deus abençoe sua participação em nossa família!\n\n"
+        f"📢 Conheça também nosso canal: [Avivamento AD]({LINK_CANAL})\n\n"
+        f"_\"Tão bom e tão agradável é que os irmãos vivam em união!\"_ — Salmos 133:1",
+        parse_mode=ParseMode.MARKDOWN,
+        disable_web_page_preview=True
+    )
+
+    # Enviar regras em seguida
+    await context.bot.send_message(chat_id, REGRAS_GRUPO, parse_mode=ParseMode.MARKDOWN)
+
+    await query.answer("✅ Bem-vindo(a) ao Avivamento AD! 🙏")
+    logger.info(f"{nome} ({user_id_alvo}) aceitou as regras e foi liberado.")
 
 async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not update.message or not update.message.text:
