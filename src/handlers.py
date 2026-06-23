@@ -1,6 +1,6 @@
 import logging
 import re
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 from telegram import ChatPermissions
@@ -21,7 +21,25 @@ def contem_palavrao(texto: str) -> bool:
     for padrao in PALAVROES_EXATOS:
         if re.search(padrao, texto_lower):
             return True
+    # Verifica palavras personalizadas
+    try:
+        from comandos import carregar_palavras_custom
+        for palavra in carregar_palavras_custom():
+            if palavra.lower() in texto_lower:
+                return True
+    except:
+        pass
     return False
+
+async def is_group_admin(bot, user_id: int) -> bool:
+    """Verifica se o usuário é admin do grupo"""
+    if user_id == OWNER_ID:
+        return True
+    try:
+        member = await bot.get_chat_member(int(GROUP_ID), user_id)
+        return member.status in ["administrator", "creator"]
+    except:
+        return False
 
 async def handle_novo_membro(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
@@ -54,12 +72,6 @@ async def handle_novo_membro(update: Update, context: ContextTypes.DEFAULT_TYPE)
                     parse_mode=ParseMode.MARKDOWN
                 )
 
-            await context.bot.send_message(
-                update.effective_chat.id,
-                REGRAS_GRUPO,
-                parse_mode=ParseMode.MARKDOWN
-            )
-
             logger.info(f"Boas-vindas enviadas para: {nome} ({membro.id})")
 
     except Exception as e:
@@ -75,6 +87,7 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
     user = update.effective_user
     user_id = user.id
 
+    # Admins e dono ficam livres do filtro
     if user_id == OWNER_ID:
         return
     try:
@@ -84,20 +97,18 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
     except:
         pass
 
-    # Verificar pedido de oração via texto
+    # Detectar pedido de oração via texto livre
     texto_lower = texto.lower()
     if any(kw in texto_lower for kw in ["pedido de oração", "peço oração", "preciso de oração", "ore por mim"]):
-        # Registrar pedido automaticamente
         salvar_pedido(user.first_name or "Membro", user_id, texto)
         await update.message.reply_text(
             f"🙏 *{user.first_name}*, seu pedido de oração foi registrado!\n\n"
             f"Os irmãos do grupo vão interceder por você. "
-            f"_\"Confessai as vossas ofensas uns aos outros e orai uns pelos outros.\"_ — Tiago 5:16\n\n"
-            f"Use /oracao para ver todos os pedidos e interceder! ❤️",
+            f"_\"Confessai as vossas ofensas uns aos outros e orai uns pelos outros.\"_ — Tiago 5:16",
             parse_mode=ParseMode.MARKDOWN
         )
 
-    # Verificar palavrão com regex (palavra completa)
+    # Filtro de palavrões
     if contem_palavrao(texto):
         try:
             await update.message.delete()
@@ -107,7 +118,6 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
         total_avisos = registrar_aviso(user_id)
 
         if total_avisos == 1:
-            # Primeiro aviso — apenas avisa
             await context.bot.send_message(
                 update.effective_chat.id,
                 f"⚠️ *Atenção, {user.first_name}!*\n\n"
@@ -117,13 +127,11 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
                 parse_mode=ParseMode.MARKDOWN
             )
         elif total_avisos == 2:
-            # Segundo aviso — silencia por 1 hora
             try:
                 until = datetime.now() + timedelta(hours=1)
                 perms = ChatPermissions(can_send_messages=False)
                 await context.bot.restrict_chat_member(
-                    update.effective_chat.id, user_id, perms,
-                    until_date=until
+                    update.effective_chat.id, user_id, perms, until_date=until
                 )
                 await context.bot.send_message(
                     update.effective_chat.id,
@@ -135,7 +143,6 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
             except Exception as e:
                 logger.error(f"Erro ao silenciar: {e}")
         else:
-            # Terceiro aviso em diante — bane
             try:
                 await context.bot.ban_chat_member(update.effective_chat.id, user_id)
                 await context.bot.send_message(
@@ -157,8 +164,9 @@ async def handle_texto_privado(update: Update, context: ContextTypes.DEFAULT_TYP
     if texto.startswith("/"):
         return
 
-    # Se é mensagem de texto no privado (não do dono), pode ser testemunho
-    if user_id != OWNER_ID and len(texto) > 20:
+    # Se não é o dono nem admin, trata como possível testemunho
+    admin = await is_group_admin(context.bot, user_id)
+    if not admin and len(texto) > 20:
         from testemunhos import salvar_testemunho
         nome = update.effective_user.first_name or "Membro"
         salvar_testemunho(nome, user_id, texto)
@@ -169,28 +177,32 @@ async def handle_texto_privado(update: Update, context: ContextTypes.DEFAULT_TYP
             f"_\"E venceram-no pelo sangue do Cordeiro e pela palavra do seu testemunho.\"_ — Apocalipse 12:11",
             parse_mode=ParseMode.MARKDOWN
         )
-        # Notificar dono
         if OWNER_ID:
             try:
                 await context.bot.send_message(
                     OWNER_ID,
-                    f"🌟 *Novo testemunho recebido!*\n\n"
-                    f"De: *{nome}*\n\n"
-                    f"_{texto[:200]}{'...' if len(texto) > 200 else ''}_\n\n"
-                    f"Use /ver_testemunhos para ver todos os pendentes.",
+                    f"🌟 *Novo testemunho recebido!*\n\nDe: *{nome}*\n\n_{texto[:200]}{'...' if len(texto) > 200 else ''}_\n\nUse /ver_testemunhos para ver todos os pendentes.",
                     parse_mode=ParseMode.MARKDOWN
                 )
             except:
                 pass
+    elif not admin:
+        await update.message.reply_text(
+            "🙏 Olá! Para enviar um testemunho, escreva seu texto com mais de 20 caracteres.\n\n"
+            "Para pedidos de oração, use /oracao no grupo ou aqui.",
+            parse_mode=ParseMode.MARKDOWN
+        )
 
 async def handle_midia_privado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
 
-    if user_id != OWNER_ID:
+    # Aceita DONO e qualquer ADMIN do grupo
+    admin = await is_group_admin(context.bot, user_id)
+    if not admin:
         await update.message.reply_text(
-            "❌ Apenas o dono do bot pode enviar mídias para postagem no canal.\n\n"
+            "❌ Apenas administradores podem enviar mídias para postagem no canal.\n\n"
             "💬 Se quiser enviar um *testemunho* para ser publicado no canal, "
-            "basta digitar aqui e eu recebo! 🙏",
+            "basta digitar o texto aqui! 🙏",
             parse_mode=ParseMode.MARKDOWN
         )
         return
@@ -224,15 +236,17 @@ async def handle_midia_privado(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     if salvo:
-        total_v = len(__import__('media_manager').carregar_media()["videos"])
-        total_i = len(__import__('media_manager').carregar_media()["imagens"])
+        import media_manager as mm
+        media = mm.carregar_media()
+        total_v = len(media["videos"])
+        total_i = len(media["imagens"])
         await update.message.reply_text(
             f"✅ *{tipo} salvo com sucesso!*\n\n"
             f"📊 Total armazenado:\n"
             f"🎥 Vídeos: {total_v}\n"
             f"🖼️ Imagens: {total_i}\n\n"
-            f"Será postado aleatoriamente no canal às 09h ou 19h.\n"
-            f"Use /listar_midia para gerenciar.",
+            f"Será postado no canal às 09h ou 19h.\n"
+            f"Use /fila para ver a fila ou /postar_midia para postar agora.",
             parse_mode=ParseMode.MARKDOWN
         )
     else:
