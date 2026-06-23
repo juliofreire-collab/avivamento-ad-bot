@@ -212,6 +212,51 @@ async def postar_devocional_grupo(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Erro ao postar devocional no grupo: {e}")
 
+async def verificar_aniversarios(context: ContextTypes.DEFAULT_TYPE):
+    try:
+        from aniversarios import get_aniversariantes_hoje
+        aniversariantes = get_aniversariantes_hoje()
+        if not aniversariantes:
+            logger.info("Nenhum aniversariante hoje.")
+            return
+
+        mensagens_bolo = [
+            "🎂🎉 Que o Senhor te abençoe ricamente neste dia especial!",
+            "🎈🙏 Que Deus continue escrevendo uma história linda em sua vida!",
+            "🎁✝️ Que este ano seja repleto das bênçãos do Senhor!",
+            "🥳🌟 Feliz aniversário! Que a graça de Deus cubra cada passo seu!",
+        ]
+
+        for uid, nome, dia, mes in aniversariantes:
+            mensagem_bolo = random.choice(mensagens_bolo)
+
+            # Mensagem no grupo
+            texto_grupo = (
+                f"🎂 *FELIZ ANIVERSÁRIO, {nome.upper()}!* 🎉\n\n"
+                f"{mensagem_bolo}\n\n"
+                f"_\"O Senhor te abençoe e te guarde; o Senhor faça resplandecer o Seu rosto sobre ti.\"_\n"
+                f"— Números 6:24-25\n\n"
+                f"Toda a família Avivamento AD celebra com você! 🙏🎊"
+            )
+            await context.bot.send_message(GROUP_ID, texto_grupo, parse_mode=ParseMode.MARKDOWN)
+
+            # Mensagem privada ao aniversariante
+            try:
+                texto_privado = (
+                    f"🎂 *Feliz Aniversário, {nome}!*\n\n"
+                    f"A família Avivamento AD te deseja um dia abençoado! ✝️🎉\n\n"
+                    f"_\"Porque sou eu que conheço os planos que tenho para vocês, diz o Senhor, planos de fazê-los prosperar e não de causar dano, planos de dar a vocês esperança e um futuro.\"_\n"
+                    f"— Jeremias 29:11"
+                )
+                await context.bot.send_message(int(uid), texto_privado, parse_mode=ParseMode.MARKDOWN)
+                logger.info(f"Mensagem privada de aniversário enviada para {nome} ({uid})")
+            except Exception:
+                logger.info(f"Não foi possível enviar privado para {nome} ({uid}) — sem conversa iniciada com o bot.")
+
+        logger.info(f"Aniversários processados: {len(aniversariantes)} membro(s).")
+    except Exception as e:
+        logger.error(f"Erro ao verificar aniversários: {e}")
+
 async def postar_ranking_grupo(context: ContextTypes.DEFAULT_TYPE):
     try:
         from ranking import get_top_ranking
@@ -355,6 +400,9 @@ def configurar_agendamentos(app):
 
     # Ranking semanal: todo domingo às 20h
     scheduler.add_job(lambda: __import__('asyncio').ensure_future(postar_ranking_grupo(ctx())), CronTrigger(day_of_week="sun", hour=20, minute=0))
+
+    # Aniversários: verificar todo dia às 08h30
+    scheduler.add_job(lambda: __import__('asyncio').ensure_future(verificar_aniversarios(ctx())), CronTrigger(hour=8, minute=30))
 
     scheduler.start()
     logger.info("✅ Todos os agendamentos configurados!")
