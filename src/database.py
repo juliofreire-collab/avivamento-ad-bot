@@ -74,6 +74,10 @@ def init_db():
         avisos   INTEGER DEFAULT 0,
         ultimo   TEXT DEFAULT ''
     );
+
+    CREATE TABLE IF NOT EXISTS palavras_bloqueadas (
+        palavra  TEXT PRIMARY KEY
+    );
     """
     with db() as cur:
         cur.execute(ddl)
