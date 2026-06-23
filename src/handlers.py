@@ -211,6 +211,13 @@ async def handle_aceitar_regras(update: Update, context: ContextTypes.DEFAULT_TY
     # Enviar regras em seguida
     await context.bot.send_message(chat_id, REGRAS_GRUPO, parse_mode=ParseMode.MARKDOWN)
 
+    # Pontuar entrada
+    try:
+        from ranking import adicionar_pontos
+        adicionar_pontos(user_id_alvo, nome, "entrada")
+    except:
+        pass
+
     await query.answer("✅ Bem-vindo(a) ao Avivamento AD! 🙏")
     logger.info(f"{nome} ({user_id_alvo}) aceitou as regras e foi liberado.")
 
@@ -231,6 +238,13 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
         member = await context.bot.get_chat_member(update.effective_chat.id, user_id)
         if member.status in ["administrator", "creator"]:
             return
+    except:
+        pass
+
+    # Pontuar participação no grupo (máx 5x/dia por membro)
+    try:
+        from ranking import adicionar_pontos
+        adicionar_pontos(user_id, user.first_name or "Membro", "mensagem")
     except:
         pass
 
