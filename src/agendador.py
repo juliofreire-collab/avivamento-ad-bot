@@ -212,6 +212,37 @@ async def postar_devocional_grupo(context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"Erro ao postar devocional no grupo: {e}")
 
+async def postar_ranking_grupo(context: ContextTypes.DEFAULT_TYPE):
+    try:
+        from ranking import get_top_ranking
+        top = get_top_ranking(10)
+        if not top:
+            logger.info("Nenhum dado de ranking para postar.")
+            return
+
+        medalhas = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+        texto = "🏆 *RANKING DE ENGAJAMENTO — SEMANA*\n\n"
+        texto += "_Membros mais ativos que edificam nossa família!_\n\n"
+
+        for i, (uid, nome, pontos) in enumerate(top):
+            medalha = medalhas[i] if i < len(medalhas) else f"{i+1}."
+            texto += f"{medalha} *{nome}* — {pontos} pontos\n"
+
+        texto += (
+            "\n🌟 *Como ganhar pontos:*\n"
+            "• Enviar testemunho: +10 pts\n"
+            "• Pedido de oração: +5 pts\n"
+            "• Participar de perguntas: +3 pts\n"
+            "• Mensagens no grupo: +1 pt/dia\n\n"
+            f"[📢 Acesse o canal]({LINK_CANAL})\n\n"
+            "_\"Portanto, encorajai-vos uns aos outros.\"_ — 1 Tessalonicenses 5:11"
+        )
+
+        await context.bot.send_message(GROUP_ID, texto, parse_mode=ParseMode.MARKDOWN)
+        logger.info("Ranking semanal postado no grupo.")
+    except Exception as e:
+        logger.error(f"Erro ao postar ranking: {e}")
+
 async def postar_testemunho_canal(context: ContextTypes.DEFAULT_TYPE):
     try:
         from testemunhos import get_proximo_testemunho_nao_publicado
@@ -321,6 +352,9 @@ def configurar_agendamentos(app):
 
     # Testemunho no canal: toda sexta-feira às 17h
     scheduler.add_job(lambda: __import__('asyncio').ensure_future(postar_testemunho_canal(ctx())), CronTrigger(day_of_week="fri", hour=17, minute=0))
+
+    # Ranking semanal: todo domingo às 20h
+    scheduler.add_job(lambda: __import__('asyncio').ensure_future(postar_ranking_grupo(ctx())), CronTrigger(day_of_week="sun", hour=20, minute=0))
 
     scheduler.start()
     logger.info("✅ Todos os agendamentos configurados!")
