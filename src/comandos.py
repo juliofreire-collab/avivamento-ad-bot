@@ -2,7 +2,6 @@ from telegram import Update, ChatPermissions
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 import logging
-import json
 import os
 import random
 from config import OWNER_ID, CHANNEL_ID, GROUP_ID
@@ -12,20 +11,30 @@ from avisos import resetar_avisos, get_avisos
 
 logger = logging.getLogger(__name__)
 
-PALAVRAS_CUSTOM_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "palavras_custom.json")
-
 def carregar_palavras_custom():
-    if os.path.exists(PALAVRAS_CUSTOM_FILE):
-        try:
-            with open(PALAVRAS_CUSTOM_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except:
-            pass
-    return []
+    """Carrega palavras bloqueadas personalizadas do banco de dados."""
+    try:
+        from database import db
+        with db() as cur:
+            cur.execute("SELECT palavra FROM palavras_bloqueadas ORDER BY palavra")
+            return [row["palavra"] for row in cur.fetchall()]
+    except Exception as e:
+        logger.error(f"Erro ao carregar palavras bloqueadas: {e}")
+        return []
 
 def salvar_palavras_custom(palavras):
-    with open(PALAVRAS_CUSTOM_FILE, "w", encoding="utf-8") as f:
-        json.dump(palavras, f, ensure_ascii=False, indent=2)
+    """Substitui a lista de palavras bloqueadas no banco de dados."""
+    try:
+        from database import db
+        with db() as cur:
+            cur.execute("DELETE FROM palavras_bloqueadas")
+            for p in palavras:
+                cur.execute(
+                    "INSERT INTO palavras_bloqueadas (palavra) VALUES (%s) ON CONFLICT DO NOTHING",
+                    (p,)
+                )
+    except Exception as e:
+        logger.error(f"Erro ao salvar palavras bloqueadas: {e}")
 
 # ─── ADMIN CHECK (corrigido: sempre verifica o GRUPO, não o chat atual) ───────
 
