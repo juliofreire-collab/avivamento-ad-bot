@@ -4,7 +4,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-MEDIA_FILE = "media_storage.json"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MEDIA_FILE = os.path.join(_BASE_DIR, "media_storage.json")
 
 def carregar_media():
     if os.path.exists(MEDIA_FILE):

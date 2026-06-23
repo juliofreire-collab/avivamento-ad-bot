@@ -370,12 +370,14 @@ def configurar_agendamentos(app):
     for h in [6, 10, 14, 18, 22]:
         jq.run_daily(postar_regras_grupo, time=dtime(h, 30, tzinfo=tz))
 
-    jq.run_daily(postar_enquete_grupo, time=dtime(10, 0, tzinfo=tz), days=(0,))
+    # Segunda às 10:30 (não 10:00 pois postar_engajamento_grupo já roda às 10:00)
+    jq.run_daily(postar_enquete_grupo, time=dtime(10, 30, tzinfo=tz), days=(0,))
     jq.run_daily(postar_enquete_grupo, time=dtime(19, 0, tzinfo=tz), days=(3,))
 
     jq.run_daily(postar_testemunho_canal, time=dtime(17, 0, tzinfo=tz), days=(4,))
 
-    jq.run_daily(postar_ranking_grupo, time=dtime(20, 0, tzinfo=tz), days=(6,))
+    # Domingo às 20:30 (não 20:00 pois postar_devocional_grupo já roda às 20:00)
+    jq.run_daily(postar_ranking_grupo, time=dtime(20, 30, tzinfo=tz), days=(6,))
 
     jq.run_daily(verificar_aniversarios, time=dtime(8, 30, tzinfo=tz))
 

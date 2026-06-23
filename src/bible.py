@@ -373,7 +373,34 @@ CORES_FUNDO = [
     [(10, 30, 60), (41, 128, 185)],
 ]
 
+_SRC_DIR = os.path.dirname(os.path.abspath(__file__))
+_FONTS_DIR = os.path.join(_SRC_DIR, "fonts")
+
+_URL_BOLD   = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSerif-Bold.ttf"
+_URL_NORMAL = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSerif.ttf"
+
+def _garantir_fontes_locais():
+    """Baixa fontes DejaVu para a pasta src/fonts/ se não existirem."""
+    import urllib.request
+    os.makedirs(_FONTS_DIR, exist_ok=True)
+    pares = [
+        (os.path.join(_FONTS_DIR, "DejaVuSerif-Bold.ttf"), _URL_BOLD),
+        (os.path.join(_FONTS_DIR, "DejaVuSerif.ttf"), _URL_NORMAL),
+    ]
+    for destino, url in pares:
+        if not os.path.exists(destino):
+            try:
+                urllib.request.urlretrieve(url, destino)
+            except Exception as e:
+                logging.getLogger(__name__).warning(f"Não foi possível baixar fonte {url}: {e}")
+
+try:
+    _garantir_fontes_locais()
+except Exception:
+    pass
+
 CAMINHOS_FONTE_BOLD = [
+    os.path.join(_FONTS_DIR, "DejaVuSerif-Bold.ttf"),
     "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
     "/usr/share/fonts/truetype/freefont/FreeSerifBold.ttf",
@@ -382,6 +409,7 @@ CAMINHOS_FONTE_BOLD = [
 ]
 
 CAMINHOS_FONTE_NORMAL = [
+    os.path.join(_FONTS_DIR, "DejaVuSerif.ttf"),
     "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
     "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
     "/usr/share/fonts/truetype/freefont/FreeSerif.ttf",
@@ -396,7 +424,11 @@ def _carregar_fonte(caminhos, tamanho):
                 return ImageFont.truetype(caminho, tamanho)
             except Exception:
                 continue
-    return ImageFont.load_default()
+    # Pillow 10+ aceita size= no load_default — muito melhor que sem parâmetro
+    try:
+        return ImageFont.load_default(size=tamanho)
+    except TypeError:
+        return ImageFont.load_default()
 
 def get_saudacao():
     import datetime

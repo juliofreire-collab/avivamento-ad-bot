@@ -5,7 +5,8 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
-AVISOS_FILE = "avisos_usuarios.json"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+AVISOS_FILE = os.path.join(_BASE_DIR, "avisos_usuarios.json")
 
 def carregar_avisos():
     if os.path.exists(AVISOS_FILE):

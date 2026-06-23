@@ -1,6 +1,9 @@
 import os
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8981755295:AAF_BaXcWlUuasIfDoao3787lJNMJMCiUd4")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise RuntimeError("BOT_TOKEN não configurado nas variáveis de ambiente!")
+
 CHANNEL_ID = os.getenv("CHANNEL_ID", "@avivamentoad")
 GROUP_ID = os.getenv("GROUP_ID", "-1003537178026")
 OWNER_ID = int(os.getenv("OWNER_ID", "8725437154"))

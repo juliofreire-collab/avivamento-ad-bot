@@ -5,7 +5,8 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-RANKING_FILE = "ranking.json"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+RANKING_FILE = os.path.join(_BASE_DIR, "ranking.json")
 
 PONTOS = {
     "testemunho": 10,
@@ -64,7 +65,7 @@ def adicionar_pontos(user_id: int, nome: str, tipo: str) -> int:
 def get_top_ranking(limite=10):
     data = carregar_ranking()
     ordenado = sorted(data.items(), key=lambda x: x[1].get("pontos", 0), reverse=True)
-    return [(uid, info["nome"], info.get("pontos", 0)) for uid, info, in ordenado[:limite]]
+    return [(uid, info["nome"], info.get("pontos", 0)) for uid, info in ordenado[:limite]]
 
 def get_pontos_usuario(user_id: int) -> int:
     data = carregar_ranking()

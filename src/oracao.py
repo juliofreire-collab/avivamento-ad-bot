@@ -5,7 +5,8 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-ORACAO_FILE = "pedidos_oracao.json"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ORACAO_FILE = os.path.join(_BASE_DIR, "pedidos_oracao.json")
 
 ORACOES_DO_DIA = [
     """🙏 *ORAÇÃO DA MANHÃ*

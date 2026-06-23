@@ -5,7 +5,8 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
-TESTEMUNHOS_FILE = "testemunhos.json"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TESTEMUNHOS_FILE = os.path.join(_BASE_DIR, "testemunhos.json")
 
 def carregar_testemunhos():
     if os.path.exists(TESTEMUNHOS_FILE):

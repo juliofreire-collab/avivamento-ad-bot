@@ -4,7 +4,8 @@ import logging
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
-ANIV_FILE = "aniversarios.json"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ANIV_FILE = os.path.join(_BASE_DIR, "aniversarios.json")
 
 def carregar():
     if os.path.exists(ANIV_FILE):

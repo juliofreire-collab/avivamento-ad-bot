@@ -169,6 +169,9 @@ async def handle_aceitar_regras(update: Update, context: ContextTypes.DEFAULT_TY
         await query.answer("⚠️ Este botão é apenas para o novo membro.", show_alert=True)
         return
 
+    # Responder ao callback imediatamente para evitar spinner eterno no Telegram
+    await query.answer("✅ Bem-vindo(a) ao Avivamento AD! 🙏")
+
     # Liberar permissões completas
     try:
         perms_livre = ChatPermissions(
@@ -218,7 +221,6 @@ async def handle_aceitar_regras(update: Update, context: ContextTypes.DEFAULT_TY
     except:
         pass
 
-    await query.answer("✅ Bem-vindo(a) ao Avivamento AD! 🙏")
     logger.info(f"{nome} ({user_id_alvo}) aceitou as regras e foi liberado.")
 
 async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -250,10 +252,16 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
 
     # Detectar pedido de oração via texto livre
     texto_lower = texto.lower()
+    nome = user.first_name or "Membro"
     if any(kw in texto_lower for kw in ["pedido de oração", "peço oração", "preciso de oração", "ore por mim"]):
-        salvar_pedido(user.first_name or "Membro", user_id, texto)
+        salvar_pedido(nome, user_id, texto)
+        try:
+            from ranking import adicionar_pontos
+            adicionar_pontos(user_id, nome, "oracao")
+        except:
+            pass
         await update.message.reply_text(
-            f"🙏 *{user.first_name}*, seu pedido de oração foi registrado!\n\n"
+            f"🙏 *{nome}*, seu pedido de oração foi registrado!\n\n"
             f"Os irmãos do grupo vão interceder por você. "
             f"_\"Confessai as vossas ofensas uns aos outros e orai uns pelos outros.\"_ — Tiago 5:16",
             parse_mode=ParseMode.MARKDOWN
