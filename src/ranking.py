@@ -1,12 +1,8 @@
-import json
-import os
 import logging
-from datetime import datetime
+from datetime import date
+from database import db
 
 logger = logging.getLogger(__name__)
-
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-RANKING_FILE = os.path.join(_BASE_DIR, "ranking.json")
 
 PONTOS = {
     "testemunho": 10,
@@ -18,62 +14,79 @@ PONTOS = {
 
 MAX_PONTOS_MENSAGEM_DIA = 5
 
-def carregar_ranking():
-    if os.path.exists(RANKING_FILE):
-        try:
-            with open(RANKING_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except:
-            pass
-    return {}
-
-def salvar_ranking(data):
-    with open(RANKING_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
 def adicionar_pontos(user_id: int, nome: str, tipo: str) -> int:
-    data = carregar_ranking()
-    uid = str(user_id)
-    hoje = datetime.now().strftime("%Y-%m-%d")
-
-    if uid not in data:
-        data[uid] = {"nome": nome, "pontos": 0, "msgs_hoje": 0, "ultimo_dia": "", "historico": {}}
-
-    data[uid]["nome"] = nome
-
-    # Limite de pontos por mensagem por dia
-    if tipo == "mensagem":
-        if data[uid].get("ultimo_dia") != hoje:
-            data[uid]["msgs_hoje"] = 0
-            data[uid]["ultimo_dia"] = hoje
-        if data[uid]["msgs_hoje"] >= MAX_PONTOS_MENSAGEM_DIA:
-            return data[uid]["pontos"]
-        data[uid]["msgs_hoje"] = data[uid].get("msgs_hoje", 0) + 1
-
     ganhou = PONTOS.get(tipo, 1)
-    data[uid]["pontos"] = data[uid].get("pontos", 0) + ganhou
+    hoje = date.today()
+    try:
+        with db() as cur:
+            # Garante que o usuário existe
+            cur.execute("""
+                INSERT INTO ranking (user_id, nome, pontos, msgs_hoje, ultimo_dia)
+                VALUES (%s, %s, 0, 0, NULL)
+                ON CONFLICT (user_id) DO UPDATE SET nome = EXCLUDED.nome
+            """, (user_id, nome))
 
-    mes = datetime.now().strftime("%Y-%m")
-    if "historico" not in data[uid]:
-        data[uid]["historico"] = {}
-    data[uid]["historico"][mes] = data[uid]["historico"].get(mes, 0) + ganhou
+            if tipo == "mensagem":
+                # Zera contador se mudou o dia
+                cur.execute("""
+                    UPDATE ranking
+                    SET msgs_hoje = CASE WHEN ultimo_dia = %s THEN msgs_hoje ELSE 0 END,
+                        ultimo_dia = %s
+                    WHERE user_id = %s
+                """, (hoje, hoje, user_id))
 
-    salvar_ranking(data)
-    logger.info(f"+{ganhou} pontos para {nome} ({tipo}) — total: {data[uid]['pontos']}")
-    return data[uid]["pontos"]
+                # Verifica limite diário
+                cur.execute("SELECT msgs_hoje FROM ranking WHERE user_id = %s", (user_id,))
+                row = cur.fetchone()
+                if row and row["msgs_hoje"] >= MAX_PONTOS_MENSAGEM_DIA:
+                    cur.execute("SELECT pontos FROM ranking WHERE user_id = %s", (user_id,))
+                    return cur.fetchone()["pontos"]
 
-def get_top_ranking(limite=10):
-    data = carregar_ranking()
-    ordenado = sorted(data.items(), key=lambda x: x[1].get("pontos", 0), reverse=True)
-    return [(uid, info["nome"], info.get("pontos", 0)) for uid, info in ordenado[:limite]]
+                cur.execute("""
+                    UPDATE ranking SET msgs_hoje = msgs_hoje + 1, pontos = pontos + %s
+                    WHERE user_id = %s
+                """, (ganhou, user_id))
+            else:
+                cur.execute("""
+                    UPDATE ranking SET pontos = pontos + %s WHERE user_id = %s
+                """, (ganhou, user_id))
+
+            cur.execute("SELECT pontos FROM ranking WHERE user_id = %s", (user_id,))
+            total = cur.fetchone()["pontos"]
+
+        logger.info(f"+{ganhou} pontos para {nome} ({tipo}) — total: {total}")
+        return total
+    except Exception as e:
+        logger.error(f"Erro ao adicionar pontos: {e}")
+        return 0
+
+def get_top_ranking(limite: int = 10):
+    try:
+        with db() as cur:
+            cur.execute(
+                "SELECT user_id, nome, pontos FROM ranking ORDER BY pontos DESC LIMIT %s",
+                (limite,)
+            )
+            rows = cur.fetchall()
+        return [(str(r["user_id"]), r["nome"], r["pontos"]) for r in rows]
+    except Exception as e:
+        logger.error(f"Erro ao buscar ranking: {e}")
+        return []
 
 def get_pontos_usuario(user_id: int) -> int:
-    data = carregar_ranking()
-    return data.get(str(user_id), {}).get("pontos", 0)
+    try:
+        with db() as cur:
+            cur.execute("SELECT pontos FROM ranking WHERE user_id = %s", (user_id,))
+            row = cur.fetchone()
+        return row["pontos"] if row else 0
+    except Exception as e:
+        logger.error(f"Erro ao buscar pontos: {e}")
+        return 0
 
 def resetar_ranking_mensal():
-    data = carregar_ranking()
-    for uid in data:
-        data[uid]["pontos"] = 0
-    salvar_ranking(data)
-    logger.info("Ranking mensal resetado.")
+    try:
+        with db() as cur:
+            cur.execute("UPDATE ranking SET pontos = 0")
+        logger.info("Ranking mensal resetado.")
+    except Exception as e:
+        logger.error(f"Erro ao resetar ranking: {e}")

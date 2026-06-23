@@ -107,6 +107,13 @@ def main():
 
     logger.info("🚀 Iniciando Bot Avivamento AD...")
 
+    try:
+        from database import init_db
+        init_db()
+    except Exception as e:
+        logger.error(f"❌ Falha ao inicializar banco de dados: {e}")
+        sys.exit(1)
+
     app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
 
     # ── Comandos para todos ──

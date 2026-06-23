@@ -1,54 +1,61 @@
-import json
-import os
 import logging
 from datetime import datetime
+from database import db
 
 logger = logging.getLogger(__name__)
 
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TESTEMUNHOS_FILE = os.path.join(_BASE_DIR, "testemunhos.json")
-
-def carregar_testemunhos():
-    if os.path.exists(TESTEMUNHOS_FILE):
-        try:
-            with open(TESTEMUNHOS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except:
-            pass
-    return []
-
 def salvar_testemunho(user_name: str, user_id: int, texto: str) -> bool:
-    testemunhos = carregar_testemunhos()
-    novo = {
-        "nome": user_name,
-        "user_id": user_id,
-        "texto": texto,
-        "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-        "publicado": False
-    }
-    testemunhos.append(novo)
-    with open(TESTEMUNHOS_FILE, "w", encoding="utf-8") as f:
-        json.dump(testemunhos, f, ensure_ascii=False, indent=2)
-    logger.info(f"Testemunho salvo de {user_name}")
-    return True
+    data = datetime.now().strftime("%d/%m/%Y %H:%M")
+    try:
+        with db() as cur:
+            cur.execute("""
+                INSERT INTO testemunhos (nome, user_id, texto, data, publicado)
+                VALUES (%s, %s, %s, %s, FALSE)
+            """, (user_name, user_id, texto, data))
+        logger.info(f"Testemunho salvo de {user_name}")
+        return True
+    except Exception as e:
+        logger.error(f"Erro ao salvar testemunho: {e}")
+        return False
 
 def get_testemunhos_pendentes():
-    return [t for t in carregar_testemunhos() if not t.get("publicado")]
+    try:
+        with db() as cur:
+            cur.execute(
+                "SELECT id, nome, user_id, texto, data FROM testemunhos WHERE publicado = FALSE ORDER BY id"
+            )
+            rows = cur.fetchall()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        logger.error(f"Erro ao buscar testemunhos pendentes: {e}")
+        return []
 
 def marcar_publicado(index: int):
-    todos = carregar_testemunhos()
-    pendentes = [i for i, t in enumerate(todos) if not t.get("publicado")]
-    if index < len(pendentes):
-        todos[pendentes[index]]["publicado"] = True
-        with open(TESTEMUNHOS_FILE, "w", encoding="utf-8") as f:
-            json.dump(todos, f, ensure_ascii=False, indent=2)
+    """Marca o N-ésimo testemunho pendente (0-indexado) como publicado."""
+    try:
+        with db() as cur:
+            cur.execute(
+                "SELECT id FROM testemunhos WHERE publicado = FALSE ORDER BY id LIMIT 1 OFFSET %s",
+                (index,)
+            )
+            row = cur.fetchone()
+            if row:
+                cur.execute("UPDATE testemunhos SET publicado = TRUE WHERE id = %s", (row["id"],))
+    except Exception as e:
+        logger.error(f"Erro ao marcar testemunho como publicado: {e}")
 
 def get_proximo_testemunho_nao_publicado():
-    todos = carregar_testemunhos()
-    for i, t in enumerate(todos):
-        if not t.get("publicado"):
-            todos[i]["publicado"] = True
-            with open(TESTEMUNHOS_FILE, "w", encoding="utf-8") as f:
-                json.dump(todos, f, ensure_ascii=False, indent=2)
-            return t
-    return None
+    """Retorna o próximo testemunho pendente e o marca como publicado."""
+    try:
+        with db() as cur:
+            cur.execute(
+                "SELECT id, nome, user_id, texto, data FROM testemunhos WHERE publicado = FALSE ORDER BY id LIMIT 1"
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            cur.execute("UPDATE testemunhos SET publicado = TRUE WHERE id = %s", (row["id"],))
+        return dict(row)
+    except Exception as e:
+        logger.error(f"Erro ao buscar próximo testemunho: {e}")
+        return None

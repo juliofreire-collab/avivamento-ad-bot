@@ -1,73 +1,88 @@
-import json
-import os
 import logging
+from database import db
 
 logger = logging.getLogger(__name__)
 
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MEDIA_FILE = os.path.join(_BASE_DIR, "media_storage.json")
+def adicionar_video(file_id: str, caption: str = "") -> bool:
+    try:
+        with db() as cur:
+            cur.execute(
+                "INSERT INTO media (file_id, tipo, caption) VALUES (%s, 'video', %s) ON CONFLICT (file_id) DO NOTHING",
+                (file_id, caption)
+            )
+            adicionado = cur.rowcount > 0
+        if adicionado:
+            logger.info(f"Vídeo salvo: {file_id}")
+        return adicionado
+    except Exception as e:
+        logger.error(f"Erro ao salvar vídeo: {e}")
+        return False
 
-def carregar_media():
-    if os.path.exists(MEDIA_FILE):
-        try:
-            with open(MEDIA_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except:
-            pass
-    return {"videos": [], "imagens": [], "ultimo_indice_video": 0, "ultimo_indice_imagem": 0}
-
-def salvar_media(data):
-    with open(MEDIA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
-def adicionar_video(file_id: str, caption: str = ""):
-    data = carregar_media()
-    entrada = {"file_id": file_id, "caption": caption, "tipo": "video"}
-    if not any(v["file_id"] == file_id for v in data["videos"]):
-        data["videos"].append(entrada)
-        salvar_media(data)
-        logger.info(f"Vídeo salvo: {file_id}")
-        return True
-    return False
-
-def adicionar_imagem(file_id: str, caption: str = ""):
-    data = carregar_media()
-    entrada = {"file_id": file_id, "caption": caption, "tipo": "imagem"}
-    if not any(i["file_id"] == file_id for i in data["imagens"]):
-        data["imagens"].append(entrada)
-        salvar_media(data)
-        logger.info(f"Imagem salva: {file_id}")
-        return True
-    return False
+def adicionar_imagem(file_id: str, caption: str = "") -> bool:
+    try:
+        with db() as cur:
+            cur.execute(
+                "INSERT INTO media (file_id, tipo, caption) VALUES (%s, 'imagem', %s) ON CONFLICT (file_id) DO NOTHING",
+                (file_id, caption)
+            )
+            adicionado = cur.rowcount > 0
+        if adicionado:
+            logger.info(f"Imagem salva: {file_id}")
+        return adicionado
+    except Exception as e:
+        logger.error(f"Erro ao salvar imagem: {e}")
+        return False
 
 def get_proximo_video():
-    data = carregar_media()
-    if not data["videos"]:
+    try:
+        with db() as cur:
+            cur.execute("SELECT file_id, caption, tipo FROM media WHERE tipo = 'video' ORDER BY RANDOM() LIMIT 1")
+            row = cur.fetchone()
+        return dict(row) if row else None
+    except Exception as e:
+        logger.error(f"Erro ao buscar vídeo: {e}")
         return None
-    import random
-    video = random.choice(data["videos"])
-    return video
 
 def get_proxima_imagem():
-    data = carregar_media()
-    if not data["imagens"]:
+    try:
+        with db() as cur:
+            cur.execute("SELECT file_id, caption, tipo FROM media WHERE tipo = 'imagem' ORDER BY RANDOM() LIMIT 1")
+            row = cur.fetchone()
+        return dict(row) if row else None
+    except Exception as e:
+        logger.error(f"Erro ao buscar imagem: {e}")
         return None
-    import random
-    img = random.choice(data["imagens"])
-    return img
 
-def total_videos():
-    return len(carregar_media()["videos"])
+def total_videos() -> int:
+    try:
+        with db() as cur:
+            cur.execute("SELECT COUNT(*) AS n FROM media WHERE tipo = 'video'")
+            return cur.fetchone()["n"]
+    except Exception as e:
+        logger.error(f"Erro ao contar vídeos: {e}")
+        return 0
 
-def total_imagens():
-    return len(carregar_media()["imagens"])
+def total_imagens() -> int:
+    try:
+        with db() as cur:
+            cur.execute("SELECT COUNT(*) AS n FROM media WHERE tipo = 'imagem'")
+            return cur.fetchone()["n"]
+    except Exception as e:
+        logger.error(f"Erro ao contar imagens: {e}")
+        return 0
 
 def limpar_videos():
-    data = carregar_media()
-    data["videos"] = []
-    salvar_media(data)
+    try:
+        with db() as cur:
+            cur.execute("DELETE FROM media WHERE tipo = 'video'")
+        logger.info("Vídeos removidos do banco.")
+    except Exception as e:
+        logger.error(f"Erro ao limpar vídeos: {e}")
 
 def limpar_imagens():
-    data = carregar_media()
-    data["imagens"] = []
-    salvar_media(data)
+    try:
+        with db() as cur:
+            cur.execute("DELETE FROM media WHERE tipo = 'imagem'")
+        logger.info("Imagens removidas do banco.")
+    except Exception as e:
+        logger.error(f"Erro ao limpar imagens: {e}")

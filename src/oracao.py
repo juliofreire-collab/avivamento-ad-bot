@@ -1,12 +1,8 @@
-import json
-import os
 import logging
 from datetime import datetime
+from database import db
 
 logger = logging.getLogger(__name__)
-
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ORACAO_FILE = os.path.join(_BASE_DIR, "pedidos_oracao.json")
 
 ORACOES_DO_DIA = [
     """🙏 *ORAÇÃO DA MANHÃ*
@@ -179,26 +175,36 @@ PERGUNTAS_ENGAJAMENTO = [
 ]
 
 
-def carregar_pedidos():
-    if os.path.exists(ORACAO_FILE):
-        try:
-            with open(ORACAO_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except:
-            pass
-    return []
-
 def salvar_pedido(user_name: str, user_id: int, pedido: str):
-    pedidos = carregar_pedidos()
-    pedidos.append({
-        "nome": user_name,
-        "user_id": user_id,
-        "pedido": pedido,
-        "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-        "orado": False
-    })
-    with open(ORACAO_FILE, "w", encoding="utf-8") as f:
-        json.dump(pedidos, f, ensure_ascii=False, indent=2)
+    data = datetime.now().strftime("%d/%m/%Y %H:%M")
+    try:
+        with db() as cur:
+            cur.execute(
+                "INSERT INTO oracao (nome, user_id, pedido, data, orado) VALUES (%s, %s, %s, %s, FALSE)",
+                (user_name, user_id, pedido, data)
+            )
+        logger.info(f"Pedido de oração salvo de {user_name}")
+    except Exception as e:
+        logger.error(f"Erro ao salvar pedido de oração: {e}")
+
+def carregar_pedidos():
+    try:
+        with db() as cur:
+            cur.execute("SELECT nome, user_id, pedido, data, orado FROM oracao ORDER BY id")
+            rows = cur.fetchall()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        logger.error(f"Erro ao carregar pedidos: {e}")
+        return []
 
 def get_pedidos_pendentes():
-    return [p for p in carregar_pedidos() if not p.get("orado")]
+    try:
+        with db() as cur:
+            cur.execute(
+                "SELECT nome, user_id, pedido, data FROM oracao WHERE orado = FALSE ORDER BY id"
+            )
+            rows = cur.fetchall()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        logger.error(f"Erro ao buscar pedidos pendentes: {e}")
+        return []

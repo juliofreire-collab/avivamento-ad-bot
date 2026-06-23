@@ -1,43 +1,40 @@
-import json
-import os
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
+from database import db
 
 logger = logging.getLogger(__name__)
 
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-AVISOS_FILE = os.path.join(_BASE_DIR, "avisos_usuarios.json")
-
-def carregar_avisos():
-    if os.path.exists(AVISOS_FILE):
-        try:
-            with open(AVISOS_FILE, "r") as f:
-                return json.load(f)
-        except:
-            pass
-    return {}
-
-def salvar_avisos(data):
-    with open(AVISOS_FILE, "w") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-
 def registrar_aviso(user_id: int) -> int:
-    data = carregar_avisos()
-    uid = str(user_id)
-    if uid not in data:
-        data[uid] = {"avisos": 0, "ultimo": ""}
-    data[uid]["avisos"] += 1
-    data[uid]["ultimo"] = datetime.now().strftime("%d/%m/%Y %H:%M")
-    salvar_avisos(data)
-    return data[uid]["avisos"]
+    agora = datetime.now().strftime("%d/%m/%Y %H:%M")
+    try:
+        with db() as cur:
+            cur.execute("""
+                INSERT INTO avisos (user_id, avisos, ultimo)
+                VALUES (%s, 1, %s)
+                ON CONFLICT (user_id) DO UPDATE
+                    SET avisos = avisos.avisos + 1,
+                        ultimo = EXCLUDED.ultimo
+                RETURNING avisos
+            """, (user_id, agora))
+            return cur.fetchone()["avisos"]
+    except Exception as e:
+        logger.error(f"Erro ao registrar aviso: {e}")
+        return 0
 
 def get_avisos(user_id: int) -> int:
-    data = carregar_avisos()
-    return data.get(str(user_id), {}).get("avisos", 0)
+    try:
+        with db() as cur:
+            cur.execute("SELECT avisos FROM avisos WHERE user_id = %s", (user_id,))
+            row = cur.fetchone()
+        return row["avisos"] if row else 0
+    except Exception as e:
+        logger.error(f"Erro ao buscar avisos: {e}")
+        return 0
 
 def resetar_avisos(user_id: int):
-    data = carregar_avisos()
-    uid = str(user_id)
-    if uid in data:
-        data[uid]["avisos"] = 0
-        salvar_avisos(data)
+    try:
+        with db() as cur:
+            cur.execute("UPDATE avisos SET avisos = 0 WHERE user_id = %s", (user_id,))
+        logger.info(f"Avisos de {user_id} resetados.")
+    except Exception as e:
+        logger.error(f"Erro ao resetar avisos: {e}")
