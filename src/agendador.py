@@ -1,7 +1,9 @@
 import logging
 import random
+import warnings
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
+from telegram.warnings import PTBUserWarning
 from bible import gerar_imagem_versiculo, get_saudacao
 from media_manager import get_proximo_video, get_proxima_imagem
 from regras import REGRAS_GRUPO
@@ -379,14 +381,15 @@ def configurar_agendamentos(app):
     for h in [6, 10, 14, 18, 22]:
         jq.run_daily(postar_regras_grupo, time=dtime(h, 30, tzinfo=tz))
 
-    # Segunda às 10:30 (não 10:00 pois postar_engajamento_grupo já roda às 10:00)
-    jq.run_daily(postar_enquete_grupo, time=dtime(10, 30, tzinfo=tz), days=(0,))
-    jq.run_daily(postar_enquete_grupo, time=dtime(19, 0, tzinfo=tz), days=(3,))
-
-    jq.run_daily(postar_testemunho_canal, time=dtime(17, 0, tzinfo=tz), days=(4,))
-
-    # Domingo às 20:30 (não 20:00 pois postar_devocional_grupo já roda às 20:00)
-    jq.run_daily(postar_ranking_grupo, time=dtime(20, 30, tzinfo=tz), days=(6,))
+    # Segunda(0) às 10:30 e Quinta(3) às 19:00 — dias em esquema cron (0=Seg … 6=Dom)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=PTBUserWarning, message=".*days.*")
+        jq.run_daily(postar_enquete_grupo, time=dtime(10, 30, tzinfo=tz), days=(0,))
+        jq.run_daily(postar_enquete_grupo, time=dtime(19, 0, tzinfo=tz), days=(3,))
+        # Sexta(4) às 17:00
+        jq.run_daily(postar_testemunho_canal, time=dtime(17, 0, tzinfo=tz), days=(4,))
+        # Domingo(6) às 20:30
+        jq.run_daily(postar_ranking_grupo, time=dtime(20, 30, tzinfo=tz), days=(6,))
 
     jq.run_daily(verificar_aniversarios, time=dtime(8, 30, tzinfo=tz))
 
