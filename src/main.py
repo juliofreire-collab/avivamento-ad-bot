@@ -18,7 +18,7 @@ from comandos import (
     cmd_chatid, cmd_enquete, cmd_saude,
     cmd_testemunho, cmd_ver_testemunhos, cmd_postar_testemunho,
     cmd_ranking, cmd_postar_ranking,
-    cmd_aniversario
+    cmd_aniversario, cmd_stats
 )
 from handlers import (
     handle_novo_membro, handle_mensagem_grupo,
@@ -27,13 +27,16 @@ from handlers import (
 )
 from agendador import configurar_agendamentos
 
+_log_handlers = [logging.StreamHandler(sys.stdout)]
+try:
+    _log_handlers.append(logging.FileHandler("bot.log", encoding="utf-8"))
+except Exception:
+    pass
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler("bot.log", encoding="utf-8")
-    ]
+    handlers=_log_handlers
 )
 logger = logging.getLogger(__name__)
 
@@ -48,6 +51,7 @@ COMANDOS_USUARIOS = [
     BotCommand("testemunho", "Enviar um testemunho para o canal"),
     BotCommand("ranking", "Ver ranking de engajamento do grupo"),
     BotCommand("aniversario", "Cadastrar seu aniversário: /aniversario DD/MM"),
+    BotCommand("stats", "Ver estatísticas do bot"),
 ]
 
 COMANDOS_ADMINS = [
@@ -87,6 +91,7 @@ COMANDOS_ADMINS = [
     BotCommand("ranking", "Ver ranking de engajamento do grupo"),
     BotCommand("postar_ranking", "Postar ranking agora no grupo"),
     BotCommand("aniversario", "Cadastrar seu aniversário: /aniversario DD/MM"),
+    BotCommand("stats", "Ver estatísticas do bot"),
 ]
 
 async def post_init(app):
@@ -171,6 +176,7 @@ def main():
     app.add_handler(CommandHandler("aniversario", cmd_aniversario))
 
     # ── Estatísticas ──
+    app.add_handler(CommandHandler("stats", cmd_stats))
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(CommandHandler("listar_midia", cmd_listar_midia))
     app.add_handler(CommandHandler("limpar_videos", cmd_limpar_videos))
