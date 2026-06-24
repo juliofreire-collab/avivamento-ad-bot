@@ -375,6 +375,24 @@ CORES_FUNDO = [
 
 _SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 _FONTS_DIR = os.path.join(_SRC_DIR, "fonts")
+_LOGO_PATH = os.path.join(_SRC_DIR, "logo_ad.png")
+
+def _carregar_logo(tamanho=200):
+    """Carrega o logo da AD, remove fundo branco e redimensiona."""
+    try:
+        logo = Image.open(_LOGO_PATH).convert("RGBA")
+        dados = logo.getdata()
+        novos = []
+        for r, g, b, a in dados:
+            if r > 215 and g > 215 and b > 215:
+                novos.append((r, g, b, 0))
+            else:
+                novos.append((r, g, b, a))
+        logo.putdata(novos)
+        logo = logo.resize((tamanho, tamanho), Image.LANCZOS)
+        return logo
+    except Exception:
+        return None
 
 _URL_BOLD   = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSerif-Bold.ttf"
 _URL_NORMAL = "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSerif.ttf"
@@ -476,16 +494,22 @@ def gerar_imagem_versiculo():
     font_ref     = _carregar_fonte(CAMINHOS_FONTE_BOLD, 42)
     font_pequena = _carregar_fonte(CAMINHOS_FONTE_NORMAL, 28)
 
-    cruz = "+"
-    try:
-        bbox = draw.textbbox((0, 0), cruz, font=font_grande)
-        cw = bbox[2] - bbox[0]
-        draw.text(((largura - cw) // 2, 120), cruz, font=font_grande, fill=(255, 255, 255, 255))
-    except Exception:
-        pass
+    logo = _carregar_logo(tamanho=200)
+    if logo:
+        lx = (largura - logo.width) // 2
+        ly = 95
+        img.paste(logo, (lx, ly), logo)
+    else:
+        cruz = "✝"
+        try:
+            bbox = draw.textbbox((0, 0), cruz, font=font_grande)
+            cw = bbox[2] - bbox[0]
+            draw.text(((largura - cw) // 2, 120), cruz, font=font_grande, fill=(255, 255, 255, 255))
+        except Exception:
+            pass
 
     linhas = textwrap.wrap(texto, width=32)
-    y_texto = 220
+    y_texto = 320
     espacamento = 55
 
     for linha in linhas:
