@@ -959,6 +959,39 @@ async def cmd_chatid(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.MARKDOWN
     )
 
+async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Estatísticas públicas do bot — disponível para todos."""
+    from testemunhos import get_testemunhos_pendentes
+    from aniversarios import total_cadastrados
+    from ranking import get_top_ranking
+    try:
+        pedidos = len(get_pedidos_pendentes())
+        testemunhos_pendentes = len(get_testemunhos_pendentes())
+        aniversarios = total_cadastrados()
+        top = get_top_ranking(1)
+        usuarios_ranking = len(get_top_ranking(1000))
+        lider = f"🥇 {top[0][1]} ({top[0][2]} pts)" if top else "Nenhum ainda"
+        texto = (
+            "📊 *ESTATÍSTICAS — AVIVAMENTO AD*\n\n"
+            f"🙏 Pedidos de oração ativos: *{pedidos}*\n"
+            f"🌟 Testemunhos aguardando publicação: *{testemunhos_pendentes}*\n"
+            f"🎂 Aniversariantes cadastrados: *{aniversarios}*\n"
+            f"🏆 Membros no ranking: *{usuarios_ranking}*\n"
+            f"👑 Líder do ranking: {lider}\n\n"
+            "⏰ *Posts automáticos ativos:*\n"
+            "  📖 Versículos: 3x ao dia\n"
+            "  ✨ Devocionais: 2x ao dia\n"
+            "  🙏 Orações: manhã e noite\n"
+            "  🌟 Testemunho: sexta 17h\n"
+            "  🏆 Ranking: domingo\n\n"
+            "✅ *Bot funcionando 24/7!*\n"
+            "_\"Não nos cansemos de fazer o bem.\"_ — Gl 6:9 🕊️"
+        )
+    except Exception as e:
+        logger.error(f"Erro no /stats: {e}")
+        texto = "⚠️ Não foi possível carregar as estatísticas no momento. Tente novamente."
+    await update.message.reply_text(texto, parse_mode=ParseMode.MARKDOWN)
+
 async def cmd_saude(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Diagnóstico completo do bot — apenas para o dono."""
     await deletar_comando(update)
