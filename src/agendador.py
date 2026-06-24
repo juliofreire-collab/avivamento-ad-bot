@@ -55,8 +55,9 @@ ENQUETES_SEMANAIS = [
 
 logger = logging.getLogger(__name__)
 
-LINK_CANAL = "https://t.me/avivamentoad"
-LINK_GRUPO = "https://t.me/+FALJMPVXpj1kOGQx"
+LINK_CANAL  = "https://t.me/avivamentoad"
+LINK_GRUPO  = "https://t.me/+FALJMPVXpj1kOGQx"
+LINK_SHARE  = f"https://t.me/share/url?url={LINK_CANAL}"
 
 TEMAS_PREGACAO = [
     "A fé que move montanhas",
@@ -85,7 +86,7 @@ async def postar_versiculo_canal(context: ContextTypes.DEFAULT_TYPE):
             f'📖 *{referencia}*\n\n'
             f'_"{texto}"_\n\n'
             f'🕊️ *Avivamento AD*\n\n'
-            f'[📤 Toque para compartilhar esta bênção]({LINK_CANAL})'
+            f'[📤 Compartilhar]({LINK_SHARE})  |  [👥 Entrar no grupo]({LINK_GRUPO})'
         )
         await context.bot.send_photo(
             CHANNEL_ID, photo=buf, caption=caption, parse_mode=ParseMode.MARKDOWN
@@ -118,7 +119,7 @@ async def postar_midia_no_canal(context: ContextTypes.DEFAULT_TYPE) -> bool:
             f'✝️ *{tema}*\n\n'
             f'{midia.get("caption", "")}\n\n'
             f'🕊️ *Avivamento AD*\n\n'
-            f'[📤 Compartilhe esta mensagem]({LINK_CANAL})'
+            f'[📤 Compartilhar]({LINK_SHARE})  |  [👥 Entrar no grupo]({LINK_GRUPO})'
         ).strip()
 
         if tipo == "video":
@@ -144,7 +145,7 @@ async def postar_devocional_canal(context: ContextTypes.DEFAULT_TYPE):
             f'✨ *{devocional["titulo"]}*\n\n'
             f'{devocional["texto"]}\n\n'
             f'🕊️ *Avivamento AD*\n\n'
-            f'[📤 Compartilhe este devocional]({LINK_CANAL})'
+            f'[📤 Compartilhar]({LINK_SHARE})  |  [👥 Entrar no grupo]({LINK_GRUPO})'
         )
         await context.bot.send_message(
             CHANNEL_ID, text=texto, parse_mode=ParseMode.MARKDOWN
@@ -298,7 +299,7 @@ async def postar_testemunho_canal(context: ContextTypes.DEFAULT_TYPE):
             f'_{t["texto"]}_\n\n'
             f'✝️ — *{t["nome"]}*\n\n'
             f'🕊️ *Avivamento AD*\n\n'
-            f'[📤 Compartilhe esta bênção]({LINK_CANAL})'
+            f'[📤 Compartilhar]({LINK_SHARE})  |  [👥 Entrar no grupo]({LINK_GRUPO})'
         )
         await context.bot.send_message(CHANNEL_ID, texto, parse_mode=ParseMode.MARKDOWN)
         await context.bot.send_message(
