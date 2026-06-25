@@ -30,12 +30,16 @@ PALAVROES_EXATOS = [
     r"\bbosta\b",
     r"\bcuz[aã]o\b",
     r"\bvai se foder\b",
-    r"\bfilho da puta\b",
+    r"\bfilh[oa]\s+d[ao]\s+p",
     r"\bseu merda\b",
     r"\bvai tomar no\b",
     r"\bpqp\b",
     r"\bvsf\b",
     r"\bkct\b",
+    r"\bvtnc\b",
+    r"\bvtncp\b",
+    r"\bcrlh\b",
+    r"\bmrd\b",
 ]
 
 # Sistema de avisos antes de banir
