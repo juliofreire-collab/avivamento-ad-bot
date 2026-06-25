@@ -71,6 +71,15 @@ def total_imagens() -> int:
         logger.error(f"Erro ao contar imagens: {e}")
         return 0
 
+def remover_midia(file_id: str):
+    """Remove uma mídia específica da fila depois de postada."""
+    try:
+        with db() as cur:
+            cur.execute("DELETE FROM media WHERE file_id = %s", (file_id,))
+        logger.info(f"Mídia removida da fila após postagem: {file_id[:20]}...")
+    except Exception as e:
+        logger.error(f"Erro ao remover mídia da fila: {e}")
+
 def limpar_videos():
     try:
         with db() as cur:
