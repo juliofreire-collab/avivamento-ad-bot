@@ -1,8 +1,11 @@
 import logging
 from datetime import datetime
+import pytz
 from database import db
 
 logger = logging.getLogger(__name__)
+
+_TZ = pytz.timezone("America/Sao_Paulo")
 
 def registrar_aniversario(user_id: int, nome: str, dia: int, mes: int):
     try:
@@ -20,7 +23,7 @@ def registrar_aniversario(user_id: int, nome: str, dia: int, mes: int):
         logger.error(f"Erro ao registrar aniversário: {e}")
 
 def get_aniversariantes_hoje():
-    hoje = datetime.now()
+    hoje = datetime.now(_TZ)
     try:
         with db() as cur:
             cur.execute(
