@@ -70,16 +70,34 @@ async def deletar_comando(update: Update):
 # ─── GERAIS ───────────────────────────────────────────────────────────────────
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    admin = await is_admin(update, context)
-    texto = (
-        "🙏 *Olá! Sou o Bot do Avivamento AD!*\n\n"
-        "Estou aqui para edificar o grupo e o canal com a Palavra de Deus.\n\n"
-        "📋 Use /ajuda para ver todos os comandos disponíveis.\n"
-        "🙏 Use /oracao para fazer ou ver pedidos de oração.\n"
-        "🌟 Use /testemunho para compartilhar um testemunho."
-    )
-    if admin:
-        texto += "\n\n🔧 *Você é administrador!* Use /ajuda para ver todos os seus comandos."
+    user_id = update.effective_user.id
+    nome = update.effective_user.first_name or "irmão(ã)"
+
+    if user_id == OWNER_ID:
+        texto = (
+            f"👑 *Olá, {nome}! Você é o DONO deste bot!*\n\n"
+            "🤖 Tenho controle total sobre o canal e grupo Avivamento AD.\n\n"
+            "🔑 *Seus poderes exclusivos:*\n"
+            "• Postar mídias: envie vídeo/foto aqui no privado\n"
+            "• /saude — diagnóstico completo do sistema\n"
+            "• /testar — testar canal e grupo ao vivo\n"
+            "• /status — ver estatísticas detalhadas\n"
+            "• /fila — ver mídias armazenadas\n"
+            "• /proxima — prévia da próxima postagem\n\n"
+            "📋 Use /ajuda para ver TODOS os seus comandos.\n\n"
+            "🕊️ _Que Deus abençoe este ministério!_"
+        )
+    else:
+        admin = await is_admin(update, context)
+        texto = (
+            f"🙏 *Olá, {nome}! Sou o Bot do Avivamento AD!*\n\n"
+            "Estou aqui para edificar o grupo e o canal com a Palavra de Deus.\n\n"
+            "📋 Use /ajuda para ver todos os comandos disponíveis.\n"
+            "🙏 Use /oracao para fazer ou ver pedidos de oração.\n"
+            "🌟 Use /testemunho para compartilhar um testemunho."
+        )
+        if admin:
+            texto += "\n\n🔧 *Você é administrador!* Use /ajuda para ver todos os seus comandos."
     await update.message.reply_text(texto, parse_mode=ParseMode.MARKDOWN)
 
 async def cmd_ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
