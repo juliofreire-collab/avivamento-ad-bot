@@ -41,7 +41,8 @@ async def is_group_admin(bot, user_id: int) -> bool:
     try:
         member = await bot.get_chat_member(int(GROUP_ID), user_id)
         return member.status in ["administrator", "creator"]
-    except:
+    except Exception as e:
+        logger.warning(f"is_group_admin: não foi possível verificar {user_id} no grupo {GROUP_ID}: {e}")
         return False
 
 async def _auto_kick_pendente(context: ContextTypes.DEFAULT_TYPE):
@@ -368,12 +369,15 @@ async def handle_texto_privado(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def handle_midia_privado(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
+    nome_user = update.effective_user.first_name or "Usuário"
 
     # Aceita DONO e qualquer ADMIN do grupo
     admin = await is_group_admin(context.bot, user_id)
+    logger.info(f"handle_midia_privado: user={user_id} ({nome_user}) admin={admin}")
+
     if not admin:
         await update.message.reply_text(
-            "❌ Apenas administradores podem enviar mídias para postagem no canal.\n\n"
+            "❌ Apenas administradores do grupo podem enviar mídias para postagem no canal.\n\n"
             "💬 Se quiser enviar um *testemunho* para ser publicado no canal, "
             "basta digitar o texto aqui! 🙏",
             parse_mode=ParseMode.MARKDOWN
@@ -381,48 +385,64 @@ async def handle_midia_privado(update: Update, context: ContextTypes.DEFAULT_TYP
         return
 
     caption = update.message.caption or ""
-    salvo = False
+    file_id = None
     tipo = ""
 
     if update.message.video:
         file_id = update.message.video.file_id
-        salvo = adicionar_video(file_id, caption)
         tipo = "🎥 Vídeo"
+        salvo = adicionar_video(file_id, caption)
     elif update.message.photo:
         file_id = update.message.photo[-1].file_id
-        salvo = adicionar_imagem(file_id, caption)
         tipo = "🖼️ Imagem"
+        salvo = adicionar_imagem(file_id, caption)
     elif update.message.document:
         mime = update.message.document.mime_type or ""
+        file_id = update.message.document.file_id
         if mime.startswith("video"):
-            file_id = update.message.document.file_id
-            salvo = adicionar_video(file_id, caption)
             tipo = "🎥 Vídeo (documento)"
+            salvo = adicionar_video(file_id, caption)
         elif mime.startswith("image"):
-            file_id = update.message.document.file_id
-            salvo = adicionar_imagem(file_id, caption)
             tipo = "🖼️ Imagem (documento)"
+            salvo = adicionar_imagem(file_id, caption)
         else:
-            await update.message.reply_text("⚠️ Formato não suportado. Envie vídeos ou imagens.")
+            await update.message.reply_text(
+                "⚠️ Formato não suportado. Envie vídeos (MP4) ou imagens (JPG/PNG).\n"
+                "Você também pode enviar arquivos de vídeo como documento."
+            )
             return
     else:
+        await update.message.reply_text(
+            "📎 Tipo de mídia não reconhecido.\n\n"
+            "Envie:\n• 🎥 Vídeos (MP4)\n• 🖼️ Fotos (JPG/PNG)\n• 📄 Arquivos de vídeo como documento"
+        )
         return
 
+    from media_manager import total_videos, total_imagens
+    total_v = total_videos()
+    total_i = total_imagens()
+
     if salvo:
-        from media_manager import total_videos, total_imagens
-        total_v = total_videos()
-        total_i = total_imagens()
+        logger.info(f"Mídia salva por {nome_user} ({user_id}): tipo={tipo} file_id={file_id[:20]}...")
         await update.message.reply_text(
-            f"✅ *{tipo} salvo com sucesso!*\n\n"
-            f"📊 Total armazenado:\n"
+            f"✅ *{tipo} adicionado à fila do canal!*\n\n"
+            f"📊 *Fila atual:*\n"
             f"🎥 Vídeos: {total_v}\n"
             f"🖼️ Imagens: {total_i}\n\n"
-            f"Será postado no canal às 09h ou 19h.\n"
-            f"Use /fila para ver a fila ou /postar_midia para postar agora.",
+            f"⏰ *Postagem automática:* 09h e 19h (horário de Brasília)\n\n"
+            f"💡 Para postar *agora*, use o comando /postar\\_midia\n"
+            f"📋 Para ver a fila completa, use /fila",
             parse_mode=ParseMode.MARKDOWN
         )
     else:
-        await update.message.reply_text("⚠️ Esta mídia já estava salva anteriormente.")
+        await update.message.reply_text(
+            f"⚠️ *Esta mídia já está na fila.*\n\n"
+            f"📊 *Fila atual:*\n"
+            f"🎥 Vídeos: {total_v}\n"
+            f"🖼️ Imagens: {total_i}\n\n"
+            f"💡 Use /postar\\_midia para postar agora ou /fila para ver a fila.",
+            parse_mode=ParseMode.MARKDOWN
+        )
 
 async def handle_saida_membro(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
