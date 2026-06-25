@@ -5,7 +5,7 @@ from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 from telegram.warnings import PTBUserWarning
 from bible import gerar_imagem_versiculo, get_saudacao
-from media_manager import get_proximo_video, get_proxima_imagem
+from media_manager import get_proximo_video, get_proxima_imagem, remover_midia
 from regras import REGRAS_GRUPO
 from oracao import ORACOES_DO_DIA, DEVOCIONAIS, PERGUNTAS_ENGAJAMENTO
 from config import CHANNEL_ID, GROUP_ID
@@ -132,7 +132,8 @@ async def postar_midia_no_canal(context: ContextTypes.DEFAULT_TYPE) -> bool:
                 CHANNEL_ID, photo=midia["file_id"], caption=caption_base,
                 parse_mode=ParseMode.MARKDOWN
             )
-        logger.info(f"Mídia ({tipo}) postada no canal.")
+        remover_midia(midia["file_id"])
+        logger.info(f"Mídia ({tipo}) postada no canal e removida da fila.")
         return True
     except Exception as e:
         logger.error(f"Erro ao postar mídia no canal: {e}")
