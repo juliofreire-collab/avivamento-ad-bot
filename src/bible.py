@@ -378,16 +378,18 @@ _FONTS_DIR = os.path.join(_SRC_DIR, "fonts")
 _LOGO_PATH = os.path.join(_SRC_DIR, "logo_ad.png")
 
 def _carregar_logo(tamanho=200):
-    """Carrega o logo da AD, remove fundo branco e redimensiona."""
+    """Carrega o logo da AD, remove fundo branco/claro, converte para branco puro e redimensiona."""
     try:
         logo = Image.open(_LOGO_PATH).convert("RGBA")
         dados = logo.getdata()
         novos = []
         for r, g, b, a in dados:
             if r > 215 and g > 215 and b > 215:
-                novos.append((r, g, b, 0))
+                # Fundo branco/claro → totalmente transparente
+                novos.append((0, 0, 0, 0))
             else:
-                novos.append((r, g, b, a))
+                # Todo pixel visível do logo → branco puro (garante visibilidade em qualquer fundo escuro)
+                novos.append((255, 255, 255, min(a, 255)))
         logo.putdata(novos)
         logo = logo.resize((tamanho, tamanho), Image.LANCZOS)
         return logo
