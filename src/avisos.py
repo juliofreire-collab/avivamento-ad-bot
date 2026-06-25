@@ -1,11 +1,14 @@
 import logging
 from datetime import datetime
+import pytz
 from database import db
 
 logger = logging.getLogger(__name__)
 
+_TZ = pytz.timezone("America/Sao_Paulo")
+
 def registrar_aviso(user_id: int) -> int:
-    agora = datetime.now().strftime("%d/%m/%Y %H:%M")
+    agora = datetime.now(_TZ).strftime("%d/%m/%Y %H:%M")
     try:
         with db() as cur:
             cur.execute("""
