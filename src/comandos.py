@@ -2,6 +2,7 @@ from telegram import Update, ChatPermissions
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 import logging
+import json
 import os
 import random
 from config import OWNER_ID, CHANNEL_ID, GROUP_ID
@@ -11,30 +12,20 @@ from avisos import resetar_avisos, get_avisos
 
 logger = logging.getLogger(__name__)
 
+PALAVRAS_CUSTOM_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "palavras_custom.json")
+
 def carregar_palavras_custom():
-    """Carrega palavras bloqueadas personalizadas do banco de dados."""
-    try:
-        from database import db
-        with db() as cur:
-            cur.execute("SELECT palavra FROM palavras_bloqueadas ORDER BY palavra")
-            return [row["palavra"] for row in cur.fetchall()]
-    except Exception as e:
-        logger.error(f"Erro ao carregar palavras bloqueadas: {e}")
-        return []
+    if os.path.exists(PALAVRAS_CUSTOM_FILE):
+        try:
+            with open(PALAVRAS_CUSTOM_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            pass
+    return []
 
 def salvar_palavras_custom(palavras):
-    """Substitui a lista de palavras bloqueadas no banco de dados."""
-    try:
-        from database import db
-        with db() as cur:
-            cur.execute("DELETE FROM palavras_bloqueadas")
-            for p in palavras:
-                cur.execute(
-                    "INSERT INTO palavras_bloqueadas (palavra) VALUES (%s) ON CONFLICT DO NOTHING",
-                    (p,)
-                )
-    except Exception as e:
-        logger.error(f"Erro ao salvar palavras bloqueadas: {e}")
+    with open(PALAVRAS_CUSTOM_FILE, "w", encoding="utf-8") as f:
+        json.dump(palavras, f, ensure_ascii=False, indent=2)
 
 # ─── ADMIN CHECK (corrigido: sempre verifica o GRUPO, não o chat atual) ───────
 
@@ -70,34 +61,16 @@ async def deletar_comando(update: Update):
 # ─── GERAIS ───────────────────────────────────────────────────────────────────
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    nome = update.effective_user.first_name or "irmão(ã)"
-
-    if user_id == OWNER_ID:
-        texto = (
-            f"👑 *Olá, {nome}! Você é o DONO deste bot!*\n\n"
-            "🤖 Tenho controle total sobre o canal e grupo Avivamento AD.\n\n"
-            "🔑 *Seus poderes exclusivos:*\n"
-            "• Postar mídias: envie vídeo/foto aqui no privado\n"
-            "• /saude — diagnóstico completo do sistema\n"
-            "• /testar — testar canal e grupo ao vivo\n"
-            "• /status — ver estatísticas detalhadas\n"
-            "• /fila — ver mídias armazenadas\n"
-            "• /proxima — prévia da próxima postagem\n\n"
-            "📋 Use /ajuda para ver TODOS os seus comandos.\n\n"
-            "🕊️ _Que Deus abençoe este ministério!_"
-        )
-    else:
-        admin = await is_admin(update, context)
-        texto = (
-            f"🙏 *Olá, {nome}! Sou o Bot do Avivamento AD!*\n\n"
-            "Estou aqui para edificar o grupo e o canal com a Palavra de Deus.\n\n"
-            "📋 Use /ajuda para ver todos os comandos disponíveis.\n"
-            "🙏 Use /oracao para fazer ou ver pedidos de oração.\n"
-            "🌟 Use /testemunho para compartilhar um testemunho."
-        )
-        if admin:
-            texto += "\n\n🔧 *Você é administrador!* Use /ajuda para ver todos os seus comandos."
+    admin = await is_admin(update, context)
+    texto = (
+        "🙏 *Olá! Sou o Bot do Avivamento AD!*\n\n"
+        "Estou aqui para edificar o grupo e o canal com a Palavra de Deus.\n\n"
+        "📋 Use /ajuda para ver todos os comandos disponíveis.\n"
+        "🙏 Use /oracao para fazer ou ver pedidos de oração.\n"
+        "🌟 Use /testemunho para compartilhar um testemunho."
+    )
+    if admin:
+        texto += "\n\n🔧 *Você é administrador!* Use /ajuda para ver todos os seus comandos."
     await update.message.reply_text(texto, parse_mode=ParseMode.MARKDOWN)
 
 async def cmd_ping(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -610,17 +583,8 @@ async def cmd_silenciar(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except:
             pass
     try:
-        perms = ChatPermissions(
-            can_send_messages=False,
-            can_send_audios=False,
-            can_send_documents=False,
-            can_send_photos=False,
-            can_send_videos=False,
-            can_send_video_notes=False,
-            can_send_voice_notes=False,
-            can_send_polls=False,
-            can_send_other_messages=False
-        )
+        perms = ChatPermissions(can_send_messages=False, can_send_media_messages=False,
+                                can_send_polls=False, can_send_other_messages=False)
         kwargs = {"until_date": until} if until else {}
         await context.bot.restrict_chat_member(update.effective_chat.id, alvo.id, perms, **kwargs)
         duracao = f" por {context.args[0]}" if context.args and until else " indefinidamente"
@@ -641,17 +605,9 @@ async def cmd_liberar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     alvo = update.message.reply_to_message.from_user
     try:
         perms = ChatPermissions(
-            can_send_messages=True,
-            can_send_audios=True,
-            can_send_documents=True,
-            can_send_photos=True,
-            can_send_videos=True,
-            can_send_video_notes=True,
-            can_send_voice_notes=True,
-            can_send_polls=True,
-            can_send_other_messages=True,
-            can_add_web_page_previews=True,
-            can_invite_users=True
+            can_send_messages=True, can_send_media_messages=True,
+            can_send_polls=True, can_send_other_messages=True,
+            can_add_web_page_previews=True, can_invite_users=True
         )
         await context.bot.restrict_chat_member(update.effective_chat.id, alvo.id, perms)
         resetar_avisos(alvo.id)
@@ -977,141 +933,61 @@ async def cmd_chatid(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode=ParseMode.MARKDOWN
     )
 
-async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Estatísticas públicas do bot — disponível para todos."""
-    from testemunhos import get_testemunhos_pendentes
-    from aniversarios import total_cadastrados
-    from ranking import get_top_ranking
-    try:
-        pedidos = len(get_pedidos_pendentes())
-        testemunhos_pendentes = len(get_testemunhos_pendentes())
-        aniversarios = total_cadastrados()
-        top = get_top_ranking(1)
-        usuarios_ranking = len(get_top_ranking(1000))
-        lider = f"🥇 {top[0][1]} ({top[0][2]} pts)" if top else "Nenhum ainda"
-        texto = (
-            "📊 *ESTATÍSTICAS — AVIVAMENTO AD*\n\n"
-            f"🙏 Pedidos de oração ativos: *{pedidos}*\n"
-            f"🌟 Testemunhos aguardando publicação: *{testemunhos_pendentes}*\n"
-            f"🎂 Aniversariantes cadastrados: *{aniversarios}*\n"
-            f"🏆 Membros no ranking: *{usuarios_ranking}*\n"
-            f"👑 Líder do ranking: {lider}\n\n"
-            "⏰ *Posts automáticos ativos:*\n"
-            "  📖 Versículos: 3x ao dia\n"
-            "  ✨ Devocionais: 2x ao dia\n"
-            "  🙏 Orações: manhã e noite\n"
-            "  🌟 Testemunho: sexta 17h\n"
-            "  🏆 Ranking: domingo\n\n"
-            "✅ *Bot funcionando 24/7!*\n"
-            "_\"Não nos cansemos de fazer o bem.\"_ — Gl 6:9 🕊️"
-        )
-    except Exception as e:
-        logger.error(f"Erro no /stats: {e}")
-        texto = "⚠️ Não foi possível carregar as estatísticas no momento. Tente novamente."
-    await update.message.reply_text(texto, parse_mode=ParseMode.MARKDOWN)
-
-async def cmd_saude(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Diagnóstico completo do bot — apenas para o dono."""
+async def cmd_importar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Migra dados dos arquivos JSON antigos para o PostgreSQL. Apenas o dono."""
     await deletar_comando(update)
-    if update.effective_user.id != OWNER_ID:
+    user_id = update.effective_user.id
+    if user_id != OWNER_ID:
         return
 
-    destino = update.effective_user.id
+    destino = user_id
+    await context.bot.send_message(destino,
+        "⏳ *Iniciando migração JSON → PostgreSQL...*\n\n"
+        "Isso pode levar alguns segundos. Aguarde.",
+        parse_mode=ParseMode.MARKDOWN
+    )
 
-    await context.bot.send_message(destino, "🔍 Verificando saúde do bot… aguarde.")
-
-    from database import db
-    from testemunhos import get_testemunhos_pendentes
-    from aniversarios import total_cadastrados
-    from ranking import get_top_ranking
-
-    import pytz
-    from datetime import datetime as _dt
-    _tz = pytz.timezone("America/Sao_Paulo")
-    agora = _dt.now(_tz).strftime("%d/%m/%Y %H:%M")
-
-    erros = []
-    linhas = [f"<b>🏥 RELATÓRIO DE SAÚDE — AVIVAMENTO AD</b>", f"⏱ {agora}\n"]
-
-    # ── Banco de dados ──────────────────────────────────────────
-    linhas.append("<b>🗄️ Banco de Dados (PostgreSQL)</b>")
-    tabelas = ["media","ranking","oracao","aniversarios","testemunhos","avisos","palavras_bloqueadas"]
     try:
+        import sys, os
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import importlib
+        mig = importlib.import_module("migrate_json_to_db")
+
+        from database import db, init_db
+        init_db()
+
+        resultados = {}
         with db() as cur:
-            for tabela in tabelas:
-                cur.execute(f"SELECT COUNT(*) AS n FROM {tabela}")
-                n = cur.fetchone()["n"]
-                linhas.append(f"  • <code>{tabela}</code>: {n} registro(s)")
-        linhas.append("  ✅ Conexão com o banco OK\n")
+            v, i = mig.migrar_media(cur)
+            resultados["🎥 Vídeos"] = v
+            resultados["🖼️ Imagens"] = i
+            resultados["🏆 Ranking"] = mig.migrar_ranking(cur)
+            resultados["🙏 Orações"] = mig.migrar_oracao(cur)
+            resultados["🎂 Aniversários"] = mig.migrar_aniversarios(cur)
+            resultados["🌟 Testemunhos"] = mig.migrar_testemunhos(cur)
+            resultados["⚠️ Avisos"] = mig.migrar_avisos(cur)
+
+        linhas = "\n".join(
+            f"{'✅' if q > 0 else '⏭️'} {k}: *{q}* registro(s)"
+            for k, q in resultados.items()
+        )
+        await context.bot.send_message(
+            destino,
+            f"✅ *MIGRAÇÃO CONCLUÍDA!*\n\n{linhas}\n\n"
+            f"_Registros já existentes foram ignorados automaticamente._",
+            parse_mode=ParseMode.MARKDOWN
+        )
+
+    except FileNotFoundError:
+        await context.bot.send_message(
+            destino,
+            "⏭️ *Nenhum arquivo JSON antigo encontrado.*\n\n"
+            "_O bot já estava usando o banco de dados ou os arquivos foram removidos._",
+            parse_mode=ParseMode.MARKDOWN
+        )
     except Exception as e:
-        erros.append(f"Banco: {e}")
-        linhas.append(f"  ❌ Erro no banco: {e}\n")
-
-    # ── Filas de conteúdo ───────────────────────────────────────
-    linhas.append("<b>📦 Filas de Conteúdo</b>")
-    try:
-        videos = total_videos()
-        imagens = total_imagens()
-        pedidos = len(get_pedidos_pendentes())
-        testemunhos = len(get_testemunhos_pendentes())
-        palavras_c = len(carregar_palavras_custom())
-        aniversarios_total = total_cadastrados()
-        usuarios_ranking = len(get_top_ranking(1000))
-        linhas.append(f"  🎥 Vídeos na fila: <b>{videos}</b>")
-        linhas.append(f"  🖼️ Imagens na fila: <b>{imagens}</b>")
-        linhas.append(f"  🙏 Pedidos de oração pendentes: <b>{pedidos}</b>")
-        linhas.append(f"  🌟 Testemunhos aguardando publicação: <b>{testemunhos}</b>")
-        linhas.append(f"  🎂 Aniversariantes cadastrados: <b>{aniversarios_total}</b>")
-        linhas.append(f"  🏆 Usuários no ranking: <b>{usuarios_ranking}</b>")
-        linhas.append(f"  🚫 Palavras extras bloqueadas: <b>{palavras_c}</b>\n")
-    except Exception as e:
-        erros.append(f"Filas: {e}")
-        linhas.append(f"  ❌ Erro: {e}\n")
-
-    # ── JobQueue / Agendamentos ─────────────────────────────────
-    linhas.append("<b>⏰ Agendamentos (JobQueue)</b>")
-    try:
-        jq = context.application.job_queue
-        if jq is None:
-            linhas.append("  ❌ JobQueue inativo!\n")
-            erros.append("JobQueue inativo")
-        else:
-            jobs = jq.jobs()
-            linhas.append(f"  ✅ {len(jobs)} jobs agendados ativos\n")
-    except Exception as e:
-        erros.append(f"JobQueue: {e}")
-        linhas.append(f"  ❌ Erro: {e}\n")
-
-    # ── Conectividade Telegram ──────────────────────────────────
-    linhas.append("<b>📡 Conectividade Telegram</b>")
-    try:
-        bot_info = await context.bot.get_me()
-        linhas.append(f"  ✅ Bot: @{bot_info.username}")
-    except Exception as e:
-        erros.append(f"Bot API: {e}")
-        linhas.append(f"  ❌ Erro: {e}")
-
-    try:
-        chat_info = await context.bot.get_chat(GROUP_ID)
-        linhas.append(f"  ✅ Grupo: {chat_info.title}")
-    except Exception as e:
-        erros.append(f"Grupo: {e}")
-        linhas.append(f"  ❌ Grupo inacessível: {e}")
-
-    try:
-        ch_info = await context.bot.get_chat(CHANNEL_ID)
-        linhas.append(f"  ✅ Canal: {ch_info.title}\n")
-    except Exception as e:
-        erros.append(f"Canal: {e}")
-        linhas.append(f"  ❌ Canal inacessível: {e}\n")
-
-    # ── Resultado ───────────────────────────────────────────────
-    if erros:
-        linhas.append(f"⚠️ <b>{len(erros)} problema(s) detectado(s):</b>")
-        for err in erros:
-            linhas.append(f"  • {err}")
-    else:
-        linhas.append("✅ <b>Tudo funcionando perfeitamente!</b>")
-        linhas.append("🕊️ <i>Que Deus abençoe este ministério!</i>")
-
-    await context.bot.send_message(destino, "\n".join(linhas), parse_mode=ParseMode.HTML)
+        await context.bot.send_message(
+            destino,
+            f"❌ *Erro durante a migração:*\n`{str(e)[:200]}`",
+            parse_mode=ParseMode.MARKDOWN
+        )

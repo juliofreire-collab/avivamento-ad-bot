@@ -4,7 +4,6 @@ from telegram import BotCommand, BotCommandScopeAllGroupChats, BotCommandScopeAl
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 )
-import traceback
 from config import BOT_TOKEN
 from comandos import (
     cmd_start, cmd_ping, cmd_ajuda, cmd_versiculo, cmd_regras, cmd_devocional, cmd_oracao,
@@ -16,10 +15,11 @@ from comandos import (
     cmd_anuncio, cmd_fixar,
     cmd_bloquear, cmd_desbloquear, cmd_listanegra,
     cmd_status, cmd_listar_midia, cmd_limpar_videos, cmd_limpar_imagens, cmd_ver_pedidos,
-    cmd_chatid, cmd_enquete, cmd_saude,
+    cmd_chatid, cmd_enquete,
     cmd_testemunho, cmd_ver_testemunhos, cmd_postar_testemunho,
     cmd_ranking, cmd_postar_ranking,
-    cmd_aniversario, cmd_stats
+    cmd_aniversario,
+    cmd_importar
 )
 from handlers import (
     handle_novo_membro, handle_mensagem_grupo,
@@ -28,16 +28,13 @@ from handlers import (
 )
 from agendador import configurar_agendamentos
 
-_log_handlers = [logging.StreamHandler(sys.stdout)]
-try:
-    _log_handlers.append(logging.FileHandler("bot.log", encoding="utf-8"))
-except Exception:
-    pass
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=_log_handlers
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler("bot.log", encoding="utf-8")
+    ]
 )
 logger = logging.getLogger(__name__)
 
@@ -52,7 +49,6 @@ COMANDOS_USUARIOS = [
     BotCommand("testemunho", "Enviar um testemunho para o canal"),
     BotCommand("ranking", "Ver ranking de engajamento do grupo"),
     BotCommand("aniversario", "Cadastrar seu aniversário: /aniversario DD/MM"),
-    BotCommand("stats", "Ver estatísticas do bot"),
 ]
 
 COMANDOS_ADMINS = [
@@ -92,7 +88,6 @@ COMANDOS_ADMINS = [
     BotCommand("ranking", "Ver ranking de engajamento do grupo"),
     BotCommand("postar_ranking", "Postar ranking agora no grupo"),
     BotCommand("aniversario", "Cadastrar seu aniversário: /aniversario DD/MM"),
-    BotCommand("stats", "Ver estatísticas do bot"),
 ]
 
 async def post_init(app):
@@ -177,14 +172,13 @@ def main():
     app.add_handler(CommandHandler("aniversario", cmd_aniversario))
 
     # ── Estatísticas ──
-    app.add_handler(CommandHandler("stats", cmd_stats))
     app.add_handler(CommandHandler("status", cmd_status))
     app.add_handler(CommandHandler("listar_midia", cmd_listar_midia))
     app.add_handler(CommandHandler("limpar_videos", cmd_limpar_videos))
     app.add_handler(CommandHandler("limpar_imagens", cmd_limpar_imagens))
     app.add_handler(CommandHandler("ver_pedidos", cmd_ver_pedidos))
     app.add_handler(CommandHandler("chatid", cmd_chatid))
-    app.add_handler(CommandHandler("saude", cmd_saude))
+    app.add_handler(CommandHandler("importar", cmd_importar))
     app.add_handler(CommandHandler("testar", cmd_testar))
 
     # ── Eventos de grupo ──
@@ -211,16 +205,6 @@ def main():
 
     # ── Agendamentos ──
     configurar_agendamentos(app)
-
-    # ── Error handler global — captura e loga todas as exceções silenciosas ──
-    async def error_handler(update, context):
-        logger.error(
-            "❌ Exceção ao processar update %s:\n%s",
-            update,
-            "".join(traceback.format_exception(type(context.error), context.error, context.error.__traceback__))
-        )
-
-    app.add_error_handler(error_handler)
 
     logger.info("✅ Bot iniciado! Aguardando mensagens 24/7...")
     app.run_polling(drop_pending_updates=True)
