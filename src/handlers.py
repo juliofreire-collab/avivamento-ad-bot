@@ -5,7 +5,10 @@ from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 from telegram import ChatPermissions
 from datetime import datetime, timedelta
+import pytz
 from config import OWNER_ID, GROUP_ID, PALAVROES_EXATOS
+
+_TZ = pytz.timezone("America/Sao_Paulo")
 from regras import REGRAS_GRUPO
 from media_manager import adicionar_video, adicionar_imagem
 from avisos import registrar_aviso, get_avisos
@@ -302,7 +305,7 @@ async def handle_mensagem_grupo(update: Update, context: ContextTypes.DEFAULT_TY
             )
         elif total_avisos == 2:
             try:
-                until = datetime.now() + timedelta(hours=1)
+                until = datetime.now(_TZ) + timedelta(hours=1)
                 perms = ChatPermissions(can_send_messages=False)
                 await context.bot.restrict_chat_member(
                     update.effective_chat.id, user_id, perms, until_date=until
