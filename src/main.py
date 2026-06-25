@@ -4,6 +4,7 @@ from telegram import BotCommand, BotCommandScopeAllGroupChats, BotCommandScopeAl
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 )
+import traceback
 from config import BOT_TOKEN
 from comandos import (
     cmd_start, cmd_ping, cmd_ajuda, cmd_versiculo, cmd_regras, cmd_devocional, cmd_oracao,
@@ -210,6 +211,16 @@ def main():
 
     # ── Agendamentos ──
     configurar_agendamentos(app)
+
+    # ── Error handler global — captura e loga todas as exceções silenciosas ──
+    async def error_handler(update, context):
+        logger.error(
+            "❌ Exceção ao processar update %s:\n%s",
+            update,
+            "".join(traceback.format_exception(type(context.error), context.error, context.error.__traceback__))
+        )
+
+    app.add_error_handler(error_handler)
 
     logger.info("✅ Bot iniciado! Aguardando mensagens 24/7...")
     app.run_polling(drop_pending_updates=True)
