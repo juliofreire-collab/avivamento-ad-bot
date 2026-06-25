@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+import pytz
 from database import db
 
 logger = logging.getLogger(__name__)
@@ -175,8 +176,10 @@ PERGUNTAS_ENGAJAMENTO = [
 ]
 
 
+_TZ = pytz.timezone("America/Sao_Paulo")
+
 def salvar_pedido(user_name: str, user_id: int, pedido: str):
-    data = datetime.now().strftime("%d/%m/%Y %H:%M")
+    data = datetime.now(_TZ).strftime("%d/%m/%Y %H:%M")
     try:
         with db() as cur:
             cur.execute(
