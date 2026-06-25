@@ -356,6 +356,340 @@ VERSICULOS = [
     ("Apocalipse 21:4", "E Deus limpará de seus olhos toda a lágrima, e não haverá mais morte, nem pranto, nem clamor, nem dor."),
     ("Apocalipse 21:5", "Eis que faço novas todas as coisas."),
     ("Apocalipse 22:20", "Certamente venho sem demora. Amém! Vem, Senhor Jesus."),
+
+    # --- NOVOS VERSICULOS ---
+
+    # Genesis (mais)
+    ("Gênesis 16:13", "Tu és o Deus que me vê."),
+    ("Gênesis 22:14", "O SENHOR proverá."),
+    ("Gênesis 32:28", "O teu nome não será mais chamado Jacó, mas Israel; porque lutaste com Deus e com os homens e prevaleceste."),
+    ("Gênesis 39:23", "O SENHOR estava com ele; e tudo o que ele fazia, o SENHOR prosperava."),
+
+    # Exodo (mais)
+    ("Êxodo 3:14", "EU SOU O QUE SOU. Assim dirás aos filhos de Israel: EU SOU me enviou a vós."),
+    ("Êxodo 33:14", "A minha presença irá contigo, e eu te darei descanso."),
+    ("Êxodo 34:6", "O SENHOR, o SENHOR Deus misericordioso e piedoso, tardio em irar-se, e grande em benignidade e verdade."),
+
+    # Numeros
+    ("Números 6:24-26", "O SENHOR te abençoe e te guarde; o SENHOR faça resplandecer o seu rosto sobre ti e tenha misericórdia de ti; o SENHOR erga o seu rosto sobre ti e te dê a paz."),
+    ("Números 23:19", "Deus não é homem, para que minta; nem filho de homem, para que se arrependa. Porventura diria ele uma coisa e não a faria?"),
+
+    # Deuteronomio (mais)
+    ("Deuteronômio 4:29", "Mas, se dali buscardes ao SENHOR vosso Deus, o achareis, quando o buscardes com todo o vosso coração e com toda a vossa alma."),
+    ("Deuteronômio 8:3", "Nem só de pão viverá o homem, mas de tudo o que sai da boca do SENHOR."),
+    ("Deuteronômio 33:27", "O Deus eterno é o teu refúgio, e por baixo estão os braços eternos."),
+
+    # Josue (mais)
+    ("Josué 3:5", "Santificai-vos, porque amanhã o SENHOR fará maravilhas no meio de vós."),
+
+    # 1 Samuel (mais)
+    ("1 Samuel 2:2", "Não há santo como o SENHOR, porque não há outro além de ti; nem há rocha como o nosso Deus."),
+    ("1 Samuel 7:12", "Até aqui nos ajudou o SENHOR."),
+    ("1 Samuel 12:24", "Temei somente ao SENHOR e servi-o com toda a verdade, de todo o vosso coração."),
+    ("1 Samuel 17:47", "O SENHOR não salva com espada nem com lança; porque do SENHOR é a guerra."),
+
+    # 2 Samuel
+    ("2 Samuel 22:3", "O meu Deus, o meu rochedo em que me refugio, o meu escudo, e o corno da minha salvação, o meu alto refúgio e o meu refúgio; tu és o meu Salvador."),
+    ("2 Samuel 22:33", "Deus é a minha força e o meu poder; e ele fez perfeito o meu caminho."),
+
+    # 1 Reis
+    ("1 Reis 8:56", "Bendito seja o SENHOR, que deu descanso ao seu povo Israel, conforme tudo o que tinha prometido."),
+
+    # 1 Cronicas
+    ("1 Crônicas 16:11", "Buscai ao SENHOR e a sua força; buscai a sua face continuamente."),
+    ("1 Crônicas 16:34", "Rendei graças ao SENHOR, porque ele é bom; porque a sua misericórdia dura para sempre."),
+    ("1 Crônicas 29:11", "Tua, ó SENHOR, é a grandeza, e o poder, e a glória, e a vitória, e a majestade."),
+
+    # 2 Cronicas (mais)
+    ("2 Crônicas 15:4", "Mas quando em sua angústia se converteram ao SENHOR Deus de Israel e o buscaram, foi achado por eles."),
+    ("2 Crônicas 20:15", "Não temais, nem vos atemorizeis, por causa desta grande multidão; porque a guerra não é vossa, mas de Deus."),
+    ("2 Crônicas 20:17", "Não precisareis pelear nesta batalha; ponde-vos, estai quietos e vede a salvação do SENHOR."),
+
+    # Esdras
+    ("Esdras 8:22", "A mão do nosso Deus é sobre todos os que o buscam para o bem deles."),
+
+    # Jo
+    ("Jó 19:25", "Eu sei que o meu Redentor vive, e que por fim se levantará sobre o pó."),
+    ("Jó 42:2", "Eu sei que tudo podes, e que nenhum dos teus propósitos pode ser frustrado."),
+
+    # Salmos (mais)
+    ("Salmos 2:8", "Pede-me, e eu te darei as nações como herança tua."),
+    ("Salmos 5:3", "De manhã ouvirás a minha voz; de manhã me apresentarei a ti e esperarei."),
+    ("Salmos 8:1", "Ó SENHOR, Senhor nosso, quão glorioso é o teu nome em toda a terra!"),
+    ("Salmos 9:9", "O SENHOR também será um alto refúgio para o oprimido, um refúgio nos tempos de angústia."),
+    ("Salmos 18:32", "Deus é quem me cinge de força e torna perfeito o meu caminho."),
+    ("Salmos 20:7", "Uns confiam em carros, e outros, em cavalos; mas nós nos lembramos do nome do SENHOR nosso Deus."),
+    ("Salmos 22:24", "Porque não desprezou nem abominou a aflição do aflito, nem escondeu dele o seu rosto; mas quando ele clamou, o ouviu."),
+    ("Salmos 23:6", "Certamente que a bondade e a misericórdia me seguirão todos os dias da minha vida."),
+    ("Salmos 24:1", "Do SENHOR é a terra e a sua plenitude; o mundo e os que nele habitam."),
+    ("Salmos 29:11", "O SENHOR dará força ao seu povo; o SENHOR abençoará o seu povo com paz."),
+    ("Salmos 33:12", "Bem-aventurada a nação cujo Deus é o SENHOR; o povo que ele escolheu para sua herança."),
+    ("Salmos 33:18", "Eis que os olhos do SENHOR estão sobre os que o temem, sobre os que esperam na sua misericórdia."),
+    ("Salmos 36:7", "Quão preciosa é, ó Deus, a tua benignidade! Por isso, os filhos dos homens se acolhem à sombra das tuas asas."),
+    ("Salmos 43:5", "Por que te abates, ó minha alma, e te perturbas dentro de mim? Espera em Deus, porque ainda o hei de louvar."),
+    ("Salmos 47:1", "Batei palmas, todos os povos; celebrai a Deus com voz de triunfo."),
+    ("Salmos 48:14", "Este Deus é o nosso Deus eternamente e para sempre; ele nos guiará até à morte."),
+    ("Salmos 50:15", "E invoca-me no dia da angústia; eu te livrarei, e tu me glorificarás."),
+    ("Salmos 57:10", "Porque a tua misericórdia é grande até aos céus, e a tua verdade até às nuvens."),
+    ("Salmos 66:20", "Bendito seja Deus, que não rejeitou a minha oração, nem removeu de mim a sua misericórdia."),
+    ("Salmos 68:19", "Bendito seja o Senhor, que dia a dia nos sobrecarrega de benefícios."),
+    ("Salmos 71:5", "Porque tu és a minha esperança, Senhor DEUS; és a minha confiança desde a minha mocidade."),
+    ("Salmos 73:26", "A minha carne e o meu coração desfalecem, mas Deus é a força do meu coração e a minha porção para sempre."),
+    ("Salmos 80:3", "Restaura-nos, ó Deus; faze resplandecer o teu rosto, e seremos salvos."),
+    ("Salmos 89:1", "As misericórdias do SENHOR cantarei para sempre; de geração em geração farei conhecida a tua fidelidade com a minha boca."),
+    ("Salmos 92:4", "Pois tu, SENHOR, me fazes alegrar com as tuas obras; exultarei nas obras das tuas mãos."),
+    ("Salmos 94:14", "Porque o SENHOR não abandonará o seu povo, nem desamparará a sua herança."),
+    ("Salmos 95:6", "Vinde, adoremos e prostremos; ajoelhemos perante o SENHOR que nos criou."),
+    ("Salmos 96:4", "Porque o SENHOR é grande e muito digno de ser louvado; é mais temível do que todos os deuses."),
+    ("Salmos 103:17", "Mas a misericórdia do SENHOR é desde a eternidade até a eternidade sobre os que o temem."),
+    ("Salmos 104:33", "Cantarei ao SENHOR enquanto viver; cantarei louvores ao meu Deus enquanto existir."),
+    ("Salmos 111:10", "O temor do SENHOR é o princípio da sabedoria; bom entendimento têm todos os que fazem os seus preceitos."),
+    ("Salmos 112:7", "Não se aterrorizará com más notícias; o seu coração está firme, confiante no SENHOR."),
+    ("Salmos 115:1", "Não a nós, SENHOR, não a nós, mas ao teu nome dá glória, por amor da tua misericórdia e da tua verdade."),
+    ("Salmos 119:50", "Este é o meu consolo na minha angústia; que a tua palavra me deu vida."),
+    ("Salmos 119:89", "Para sempre, ó SENHOR, a tua palavra está firmemente estabelecida nos céus."),
+    ("Salmos 119:130", "A exposição das tuas palavras dá luz; dá entendimento aos simples."),
+    ("Salmos 138:7", "Ainda que eu andasse no meio da angústia, tu me revivificarás."),
+    ("Salmos 139:5", "Tu me cercas por detrás e pela frente, e sobre mim pões a tua mão."),
+    ("Salmos 142:3", "Quando o meu espírito estava angustiado dentro de mim, tu conhecias o meu caminho."),
+    ("Salmos 146:5", "Feliz aquele que tem por ajudante o Deus de Jacó, e cuja esperança está no SENHOR seu Deus."),
+    ("Salmos 147:11", "O SENHOR se agrada dos que o temem, dos que esperam na sua misericórdia."),
+    ("Salmos 148:13", "Louvem o nome do SENHOR; porque só o seu nome é excelso; a sua glória está acima da terra e do céu."),
+
+    # Proverbios (mais)
+    ("Provérbios 8:17", "Eu amo os que me amam, e os que me procuram diligentemente me acharão."),
+    ("Provérbios 11:2", "Com a soberba vem a vergonha, mas com os humildes está a sabedoria."),
+    ("Provérbios 11:14", "Onde não há sábio conselho, o povo cai; mas na multidão de conselheiros há segurança."),
+    ("Provérbios 13:20", "Anda com os sábios e serás sábio; mas o companheiro dos tolos será destruído."),
+    ("Provérbios 14:30", "O coração tranquilo é a vida do corpo."),
+    ("Provérbios 16:24", "As palavras agradáveis são como favos de mel, doces para a alma e saúde para os ossos."),
+    ("Provérbios 21:21", "O que segue a justiça e a misericórdia achará a vida, a justiça e a honra."),
+    ("Provérbios 27:1", "Não te glories do dia de amanhã, porque não sabes o que trará o dia."),
+    ("Provérbios 31:30", "Enganosa é a graça e vã é a formosura, mas a mulher que teme ao SENHOR, essa sim será louvada."),
+
+    # Isaias (mais)
+    ("Isaías 12:2", "Eis que Deus é a minha salvação; confiarei, e não me recearei; porque o SENHOR DEUS é a minha força e o meu cântico."),
+    ("Isaías 25:1", "SENHOR, tu és o meu Deus; exaltar-te-ei, louvarei o teu nome, porque fizeste maravilhas."),
+    ("Isaías 30:15", "Na conversão e no repouso, nisto sereis salvos; na quietação e na confiança está a vossa força."),
+    ("Isaías 33:22", "Porque o SENHOR é o nosso Juiz, o SENHOR é o nosso Legislador, o SENHOR é o nosso Rei; ele nos salvará."),
+    ("Isaías 40:8", "Seca-se a erva, cai a flor, mas a palavra do nosso Deus subsiste para sempre."),
+    ("Isaías 44:22", "Apaguei as tuas transgressões como a névoa, e os teus pecados como a nuvem; volta-te para mim, porque eu te redimi."),
+    ("Isaías 45:2", "Eu irei adiante de ti, e farei que os lugares tortuosos se endireitem."),
+    ("Isaías 48:17", "Eu sou o SENHOR teu Deus, que te ensina o que é proveitoso, e te guia pelo caminho em que deves andar."),
+    ("Isaías 54:17", "Nenhuma arma forjada contra ti prosperará."),
+
+    # Jeremias (mais)
+    ("Jeremias 1:5", "Antes que te formasse no ventre materno, eu te conheci; antes que saísses do ventre, eu te santifiquei."),
+    ("Jeremias 17:14", "Cura-me, ó SENHOR, e serei curado; salva-me, e serei salvo; porque tu és o meu louvor."),
+    ("Jeremias 31:34", "Porque eu perdoarei a sua iniquidade e não me lembrarei mais dos seus pecados."),
+    ("Jeremias 32:27", "Eis que eu sou o SENHOR, o Deus de toda a carne; haverá alguma coisa demasiado difícil para mim?"),
+
+    # Lamentacoes (mais)
+    ("Lamentações 3:26", "Bom é aguardar em silêncio a salvação do SENHOR."),
+    ("Lamentações 3:40", "Sondemos e provemos os nossos caminhos e voltemos para o SENHOR."),
+
+    # Daniel
+    ("Daniel 2:20", "Bendito seja o nome de Deus para todo o sempre, porque o poder e a sabedoria são seus."),
+    ("Daniel 6:26", "Porque ele é o Deus vivo e permanece para sempre, e o seu reino jamais será destruído."),
+    ("Daniel 10:19", "Não temas; sê forte; sê forte! E, enquanto ele me falava, cobrei forças."),
+
+    # Oseas
+    ("Oséias 6:3", "Conheçamos, e sigamos a conhecer o SENHOR; a sua saída é certa como a alva da manhã."),
+    ("Oséias 14:4", "Sararei a sua apostasia, amarei-os livremente; porque a minha ira se desviou deles."),
+
+    # Joel (mais)
+    ("Joel 2:13", "Rasgai o vosso coração, e não as vossas vestes, e convertei-vos ao SENHOR vosso Deus; porque ele é misericordioso e compassivo."),
+
+    # Amos
+    ("Amós 5:4", "Assim diz o SENHOR à casa de Israel: Buscai-me, e vivereis."),
+
+    # Miqueias
+    ("Miquéias 7:7", "Mas eu olharei para o SENHOR; esperarei o Deus da minha salvação; o meu Deus me ouvirá."),
+    ("Miquéias 7:18", "Quem é Deus como tu, que perdoa a iniquidade e passa por alto a transgressão do remanescente da sua herança?"),
+
+    # Malaquias
+    ("Malaquias 3:6", "Porque eu, o SENHOR, não mudo; por isso vós, ó filhos de Jacó, não sois consumidos."),
+    ("Malaquias 3:10", "Trazei todos os dízimos à casa do tesouro, para que haja mantimento na minha casa; e provai-me nisto, diz o SENHOR dos Exércitos."),
+
+    # Mateus (mais)
+    ("Mateus 5:14", "Vós sois a luz do mundo; não se pode esconder uma cidade edificada sobre um monte."),
+    ("Mateus 9:29", "Segundo a vossa fé, vos seja feito."),
+    ("Mateus 10:30-31", "Ora, até os cabelos todos da vossa cabeça estão contados. Não temais, pois; sois de mais valor do que muitos pardais."),
+    ("Mateus 11:30", "Porque o meu jugo é suave e o meu fardo é leve."),
+    ("Mateus 24:35", "O céu e a terra passarão, mas as minhas palavras de modo algum passarão."),
+
+    # Marcos (mais)
+    ("Marcos 5:36", "Não temas, crê somente."),
+    ("Marcos 10:45", "Porque o Filho do Homem veio, não para ser servido, mas para servir e dar a sua vida em resgate de muitos."),
+    ("Marcos 16:15", "Ide por todo o mundo e pregai o evangelho a toda criatura."),
+
+    # Lucas (mais)
+    ("Lucas 4:18", "O Espírito do Senhor está sobre mim, pelo que me ungiu para evangelizar os pobres."),
+    ("Lucas 10:19", "Eis que vos dou poder para pisar serpentes e escorpiões, e toda a força do inimigo; e nada vos poderá fazer dano."),
+    ("Lucas 10:27", "Amarás ao Senhor teu Deus de todo o teu coração, de toda a tua alma, de todas as tuas forças e de todo o teu entendimento; e ao teu próximo como a ti mesmo."),
+    ("Lucas 12:7", "Ora, até os cabelos da vossa cabeça estão todos contados. Não temais."),
+    ("Lucas 17:6", "Se tiverdes fé como um grão de mostarda, direis a esta amoreira: Arranca-te e transplanta-te no mar; e ela vos obedeceria."),
+    ("Lucas 21:33", "O céu e a terra passarão, mas as minhas palavras não passarão."),
+
+    # Joao (mais)
+    ("João 1:14", "E o Verbo se fez carne e habitou entre nós, e vimos a sua glória."),
+    ("João 1:16", "Porque da sua plenitude todos nós recebemos, e graça por graça."),
+    ("João 5:24", "Na verdade, na verdade vos digo que aquele que ouve a minha palavra e crê naquele que me enviou tem a vida eterna."),
+    ("João 6:37", "Todo o que o Pai me dá virá a mim; e o que vem a mim de maneira nenhuma o lançarei fora."),
+    ("João 7:37", "Se alguém tem sede, venha a mim e beba."),
+    ("João 9:4", "É necessário que façamos as obras daquele que me enviou, enquanto é dia."),
+    ("João 11:35", "Jesus chorou."),
+    ("João 14:3", "E quando eu for e vos preparar lugar, voltarei e vos tomarei para mim mesmo."),
+    ("João 14:16", "E eu rogarei ao Pai, e ele vos dará outro Consolador, para que fique convosco para sempre."),
+    ("João 15:16", "Não me escolhestes vós a mim, mas eu vos escolhi a vós."),
+    ("João 17:17", "Santifica-os na verdade; a tua palavra é a verdade."),
+    ("João 20:29", "Bem-aventurados os que não viram e creram."),
+
+    # Atos (mais)
+    ("Atos 2:21", "E todo aquele que invocar o nome do Senhor será salvo."),
+    ("Atos 2:38", "Arrependei-vos e cada um de vós seja batizado em nome de Jesus Cristo, para remissão dos pecados."),
+    ("Atos 3:6", "Prata e ouro não tenho; porém o que tenho te dou: em nome de Jesus Cristo de Nazaré, levanta-te e anda."),
+    ("Atos 4:31", "E, havendo orado, o lugar onde estavam reunidos tremeu; e todos foram cheios do Espírito Santo."),
+    ("Atos 16:31", "Crê no Senhor Jesus Cristo e serás salvo, tu e a tua casa."),
+
+    # Romanos (mais)
+    ("Romanos 10:13", "Todo aquele que invocar o nome do Senhor será salvo."),
+    ("Romanos 11:36", "Porque dele e por meio dele e para ele são todas as coisas; glória, pois, a ele eternamente."),
+    ("Romanos 12:1", "Rogo-vos, irmãos, pela compaixão de Deus, que apresenteis os vossos corpos em sacrifício vivo, santo e agradável a Deus."),
+    ("Romanos 12:2", "E não vos conformeis com este século, mas transformai-vos pela renovação da vossa mente."),
+    ("Romanos 12:10", "Amai-vos cordialmente uns aos outros com amor fraternal; preferindo-vos em honra uns aos outros."),
+    ("Romanos 12:12", "Regozijai-vos na esperança, sede pacientes na tribulação, perseverantes na oração."),
+    ("Romanos 15:13", "Ora, o Deus de esperança vos encha de todo o gozo e paz no crer, para que abundeis em esperança pelo poder do Espírito Santo."),
+
+    # 1 Corintios (mais)
+    ("1 Coríntios 2:9", "O que os olhos não viram, nem os ouvidos ouviram, nem o coração do homem imaginou, isso Deus preparou para os que o amam."),
+    ("1 Coríntios 3:16", "Não sabeis que sois o templo de Deus e que o Espírito de Deus habita em vós?"),
+    ("1 Coríntios 10:13", "Não veio sobre vós tentação que não fosse humana; mas Deus é fiel, e não permitirá que sejais tentados além do que podeis suportar."),
+    ("1 Coríntios 13:4-5", "O amor é paciente, é benigno; o amor não arde em ciúmes, não se ufana, não se ensoberbece; não se conduz inconvenientemente."),
+    ("1 Coríntios 13:7", "Tudo sofre, tudo crê, tudo espera, tudo suporta."),
+    ("1 Coríntios 13:13", "Agora, pois, permanecem a fé, a esperança e o amor, estes três; mas o maior destes é o amor."),
+    ("1 Coríntios 15:57", "Mas graças a Deus, que nos dá a vitória por nosso Senhor Jesus Cristo."),
+    ("1 Coríntios 16:13", "Vigiai, permanecei firmes na fé, portai-vos varonilmente, fortalecei-vos."),
+
+    # 2 Corintios (mais)
+    ("2 Coríntios 1:3-4", "Bendito seja o Deus e Pai de nosso Senhor Jesus Cristo, o Pai de misericórdias e Deus de toda a consolação; o qual nos consola em toda a nossa tribulação."),
+    ("2 Coríntios 4:7", "Mas temos este tesouro em vasos de barro, para que a excelência do poder seja de Deus e não de nós."),
+    ("2 Coríntios 4:17", "Porque este momentâneo e leve peso de tribulação nos produz uma eterna e excelente glória."),
+    ("2 Coríntios 5:7", "Porque andamos por fé e não por vista."),
+    ("2 Coríntios 5:17", "Assim que, se alguém está em Cristo, nova criatura é; as coisas antigas já passaram; eis que tudo se fez novo."),
+    ("2 Coríntios 5:21", "Porque aquele que não conheceu pecado, por nós o fez pecado, para que, nele, fôssemos feitos justiça de Deus."),
+    ("2 Coríntios 6:2", "Eis o momento favorável; eis o dia da salvação!"),
+    ("2 Coríntios 9:7", "Deus ama quem dá com alegria."),
+    ("2 Coríntios 12:9", "A minha graça te basta, porque o meu poder se aperfeiçoa na fraqueza."),
+
+    # Galatas (mais)
+    ("Gálatas 2:20", "Já estou crucificado com Cristo; e vivo, não mais eu, mas Cristo vive em mim."),
+    ("Gálatas 5:1", "Foi para a liberdade que Cristo nos libertou. Permanecei, pois, firmes, e não vos submetais novamente ao jugo da escravidão."),
+    ("Gálatas 5:22-23", "Mas o fruto do Espírito é: amor, alegria, paz, longanimidade, benignidade, bondade, fidelidade, mansidão, domínio próprio."),
+    ("Gálatas 6:9", "E não nos cansemos de fazer o bem, porque a seu tempo ceifaremos, se não tivermos desanimado."),
+
+    # Efesios (mais)
+    ("Efésios 1:7", "Em quem temos a redenção pelo seu sangue, a remissão das ofensas, segundo as riquezas da sua graça."),
+    ("Efésios 1:17", "Para que o Deus de nosso Senhor Jesus Cristo, o Pai de glória, vos dê o espírito de sabedoria e de revelação no pleno conhecimento dele."),
+    ("Efésios 2:8", "Porque pela graça sois salvos, por meio da fé; e isso não vem de vós; é dom de Deus."),
+    ("Efésios 3:16", "Para que vos conceda que sejais corroborados com poder pelo seu Espírito no homem interior."),
+    ("Efésios 3:20", "Ora, àquele que é poderoso para fazer tudo muito mais abundantemente além do que pedimos ou pensamos."),
+    ("Efésios 4:32", "Sede bondosos e compassivos uns para com os outros, perdoando-vos mutuamente."),
+    ("Efésios 6:10", "Finalmente, irmãos, fortalecei-vos no Senhor e na força do seu poder."),
+    ("Efésios 6:11", "Revesti-vos de toda a armadura de Deus, para que possais ficar firmes contra as ciladas do diabo."),
+
+    # Filipenses (mais)
+    ("Filipenses 1:6", "Tendo por certo que o que em vós começou a boa obra a aperfeiçoará até ao dia de Jesus Cristo."),
+    ("Filipenses 2:5", "Haja em vós o mesmo sentimento que houve em Cristo Jesus."),
+    ("Filipenses 4:6", "Não andeis ansiosos por coisa alguma; antes em tudo, pela oração e pela súplica com ação de graças, apresentai as vossas petições a Deus."),
+    ("Filipenses 4:7", "E a paz de Deus, que excede todo o entendimento, guardará os vossos corações e os vossos pensamentos em Cristo Jesus."),
+
+    # Colossenses (mais)
+    ("Colossenses 1:16", "Porque nele foram criadas todas as coisas, nos céus e na terra, as visíveis e as invisíveis."),
+    ("Colossenses 3:1", "Portanto, se fostes ressuscitados com Cristo, buscai as coisas que são lá do alto."),
+    ("Colossenses 3:2", "Pensai nas coisas que são lá do alto, não nas que são da terra."),
+    ("Colossenses 3:17", "E tudo quanto fizerdes, seja em palavra ou em obra, fazei tudo em nome do Senhor Jesus."),
+    ("Colossenses 3:23", "E tudo quanto fizerdes, fazei-o de todo o coração, como ao Senhor e não aos homens."),
+
+    # 1 Tessalonicenses (mais)
+    ("1 Tessalonicenses 4:16", "Porque o mesmo Senhor descerá do céu com alarido, com voz de arcanjo e com a trombeta de Deus."),
+    ("1 Tessalonicenses 5:16-18", "Regozijai-vos sempre. Orai sem cessar. Em tudo dai graças, porque esta é a vontade de Deus em Cristo Jesus para convosco."),
+
+    # 2 Tessalonicenses (mais)
+    ("2 Tessalonicenses 3:3", "Mas o Senhor é fiel, que vos confirmará e guardará do mal."),
+
+    # 1 Timoteo
+    ("1 Timóteo 1:17", "Ao Rei dos séculos, immortal, invisível, o único e sábio Deus, sejam honra e glória pelos séculos dos séculos."),
+    ("1 Timóteo 2:5", "Porque há um só Deus e um só Mediador entre Deus e os homens, Jesus Cristo homem."),
+    ("1 Timóteo 6:6", "Mas é grande ganho a piedade com contentamento."),
+    ("1 Timóteo 6:12", "Combate o bom combate da fé, lança mão da vida eterna."),
+
+    # 2 Timoteo (mais)
+    ("2 Timóteo 1:7", "Porque Deus não nos deu o espírito de temor, mas de poder, de amor e de moderação."),
+    ("2 Timóteo 2:13", "Se somos infiéis, ele permanece fiel; ele não pode negar-se a si mesmo."),
+    ("2 Timóteo 3:16-17", "Toda a Escritura é divinamente inspirada e útil para ensinar, para repreender, para corrigir, para instruir em justiça."),
+    ("2 Timóteo 4:7", "Combati o bom combate, acabei a carreira, guardei a fé."),
+
+    # Hebreus (mais)
+    ("Hebreus 2:18", "Porque, tendo ele mesmo sido tentado e sofrido, é poderoso para socorrer os que são tentados."),
+    ("Hebreus 6:10", "Porque Deus não é injusto para se esquecer da vossa obra e do trabalho do amor."),
+    ("Hebreus 6:19", "A qual esperança temos como âncora da alma, segura e firme."),
+    ("Hebreus 7:25", "Pelo que também pode salvar perfeitamente os que por ele se aproximam de Deus."),
+    ("Hebreus 9:14", "Quanto mais o sangue de Cristo, que pelo Espírito eterno se ofereceu a si mesmo imaculado a Deus, purificará a vossa consciência."),
+    ("Hebreus 10:35-36", "Não abandoneis, pois, a vossa confiança, a qual tem grande galardão. Porque necessitais de paciência."),
+    ("Hebreus 11:3", "Pela fé entendemos que os mundos foram criados pela palavra de Deus."),
+    ("Hebreus 12:28", "Assim, recebendo um reino que não pode ser abalado, retenhamos a graça, pela qual sirvamos a Deus agradavelmente."),
+    ("Hebreus 13:6", "Assim que, podemos dizer com toda a confiança: O Senhor é o meu ajudador; não temerei o que me possa fazer o homem."),
+
+    # Tiago (mais)
+    ("Tiago 1:2-3", "Meus irmãos, tende grande alegria quando cairdes em diversas tentações, sabendo que a prova da vossa fé produz a paciência."),
+    ("Tiago 1:17", "Todo o bom donativo e todo o dom perfeito vêm do alto, descendo do Pai das luzes."),
+    ("Tiago 2:17", "Assim também a fé, se não tiver obras, é morta em si mesma."),
+    ("Tiago 4:10", "Humilhai-vos perante o Senhor, e ele vos exaltará."),
+    ("Tiago 5:11", "Eis que chamamos bem-aventurados os que sofreram; ouvistes da paciência de Jó e vistes o fim que o Senhor lhe deu."),
+    ("Tiago 5:15", "E a oração da fé salvará o enfermo."),
+
+    # 1 Pedro (mais)
+    ("1 Pedro 1:3", "Bendito seja o Deus e Pai de nosso Senhor Jesus Cristo que, segundo a sua grande misericórdia, nos regenerou para uma viva esperança."),
+    ("1 Pedro 1:25", "A palavra do Senhor permanece para sempre."),
+    ("1 Pedro 3:9", "Não tornando o mal pelo mal, nem injúria por injúria; antes, pelo contrário, bendizendo."),
+    ("1 Pedro 4:8", "Mas, sobretudo, tende ardente amor uns para com os outros; porque o amor cobre uma multidão de pecados."),
+    ("1 Pedro 4:10", "Administrai uns aos outros, cada um conforme o dom que recebeu, como bons despenseiros da multiforme graça de Deus."),
+
+    # 2 Pedro
+    ("2 Pedro 1:3", "Como o seu divino poder nos tem dado tudo o que diz respeito à vida e à piedade."),
+    ("2 Pedro 1:4", "Pelos quais nos foram dadas grandíssimas e preciosas promessas, para que por elas sejais participantes da natureza divina."),
+    ("2 Pedro 3:9", "O Senhor não retarda a sua promessa, ainda que alguns a têm por tardança; mas é longânimo para convosco."),
+    ("2 Pedro 3:18", "Crescei na graça e no conhecimento de nosso Senhor e Salvador Jesus Cristo."),
+
+    # 1 Joao (mais)
+    ("1 João 2:1", "Meus filhinhos, estas coisas vos escrevo para que não pequeis; e, se alguém pecar, temos um Advogado junto ao Pai, Jesus Cristo, o justo."),
+    ("1 João 2:17", "O mundo passa, e a sua concupiscência; mas aquele que faz a vontade de Deus permanece para sempre."),
+    ("1 João 3:18", "Meus filhinhos, não amemos de palavra, nem de língua, mas por obra e em verdade."),
+    ("1 João 5:11", "E este é o testemunho: que Deus nos deu a vida eterna, e esta vida está em seu Filho."),
+
+    # 2 Joao
+    ("2 João 1:6", "E este é o amor: que andemos segundo os seus mandamentos."),
+
+    # 3 Joao
+    ("3 João 1:2", "Amado, desejo que te vá bem em tudo e que tenhas saúde, assim como bem vai a tua alma."),
+
+    # Judas
+    ("Judas 1:20-21", "Vós, porém, amados, edificando-vos na vossa santíssima fé, orando no Espírito Santo, conservai-vos no amor de Deus."),
+    ("Judas 1:24-25", "Ora, àquele que é poderoso para vos guardar de tropeçardes e vos apresentar com grandes alegrias diante da sua glória, ao único sábio Deus, nosso Salvador, seja glória e majestade."),
+
+    # Apocalipse (mais)
+    ("Apocalipse 2:10", "Sê fiel até à morte, e dar-te-ei a coroa da vida."),
+    ("Apocalipse 3:10", "Porque guardaste a palavra da minha paciência, também eu te guardarei da hora da tentação."),
+    ("Apocalipse 4:8", "Santo, Santo, Santo é o Senhor Deus, o Todo-Poderoso, que era, e que é, e que há de vir."),
+    ("Apocalipse 5:12", "Digno é o Cordeiro que foi morto de receber o poder, e riquezas, e sabedoria, e força, e honra, e glória, e louvor."),
+    ("Apocalipse 7:17", "Porque o Cordeiro que está no meio do trono os apascentará e os guiará para as fontes das águas da vida."),
+    ("Apocalipse 11:15", "Os reinos do mundo vieram a ser de nosso Senhor e do seu Cristo, e ele reinará pelos séculos dos séculos."),
+    ("Apocalipse 12:11", "E eles o venceram pelo sangue do Cordeiro e pela palavra do seu testemunho."),
+    ("Apocalipse 19:6", "Aleluia! Pois reina o Senhor Deus, o Todo-Poderoso."),
+    ("Apocalipse 21:3", "Eis o tabernáculo de Deus com os homens. Ele habitará com eles, e eles serão o seu povo."),
+    ("Apocalipse 22:13", "Eu sou o Alfa e o Ômega, o primeiro e o último, o princípio e o fim."),
+    ("Apocalipse 22:17", "E o Espírito e a esposa dizem: Vem. E o que ouve diga: Vem."),
 ]
 
 CORES_FUNDO = [
