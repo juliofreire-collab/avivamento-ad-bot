@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = [
+  "python311",
+  "python311Packages.pip",
+  "libjpeg",
+  "libpng",
+  "freetype",
+  "zlib",
+  "libwebp",
+  "postgresql"
+]
+
+[phases.install]
+cmds = ["pip install -r bot/requirements.txt"]
+
+[start]
+cmd = "cd bot && python bot.py"
