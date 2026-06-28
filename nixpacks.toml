@@ -7,7 +7,9 @@ nixPkgs = [
   "freetype",
   "zlib",
   "libwebp",
-  "postgresql"
+  "postgresql",
+  "dejavu_fonts",
+  "fontconfig"
 ]
 
 [phases.install]
