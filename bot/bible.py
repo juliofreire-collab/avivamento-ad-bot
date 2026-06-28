@@ -1,9 +1,45 @@
 import random
 import io
+import os
 import logging
+import subprocess
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
+
+def _encontrar_fonte(nome_arquivo: str) -> str | None:
+    candidatos = [
+        f"/usr/share/fonts/truetype/dejavu/{nome_arquivo}",
+        f"/usr/share/fonts/truetype/DejaVu/{nome_arquivo}",
+        f"/usr/share/fonts/dejavu/{nome_arquivo}",
+        f"/usr/local/share/fonts/{nome_arquivo}",
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "fonts", nome_arquivo),
+    ]
+    try:
+        familia = "DejaVu Sans:style=Bold" if "Bold" in nome_arquivo else "DejaVu Sans:style=Book"
+        resultado = subprocess.run(
+            ["fc-list", f":{familia}", "--format=%{{file}}\n"],
+            capture_output=True, text=True, timeout=5
+        )
+        for linha in resultado.stdout.strip().split("\n"):
+            linha = linha.strip()
+            if linha and os.path.exists(linha):
+                candidatos.insert(0, linha)
+    except Exception:
+        pass
+    for path in candidatos:
+        if path and os.path.exists(path):
+            return path
+    return None
+
+def _carregar_fonte(path: str | None, tamanho: int):
+    from PIL import ImageFont
+    if path:
+        try:
+            return ImageFont.truetype(path, tamanho)
+        except Exception:
+            pass
+    return ImageFont.load_default()
 
 VERSICULOS = [
     ("Filipenses 4:13", "Tudo posso naquele que me fortalece."),
@@ -86,16 +122,12 @@ def gerar_imagem_versiculo():
         img = img.convert("RGB")
         draw = ImageDraw.Draw(img)
 
-        try:
-            font_titulo = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 52)
-            font_texto = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 40)
-            font_ref = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 44)
-            font_marca = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
-        except:
-            font_titulo = ImageFont.load_default()
-            font_texto = ImageFont.load_default()
-            font_ref = ImageFont.load_default()
-            font_marca = ImageFont.load_default()
+        bold_path = _encontrar_fonte("DejaVuSans-Bold.ttf")
+        regular_path = _encontrar_fonte("DejaVuSans.ttf")
+        font_titulo = _carregar_fonte(bold_path, 52)
+        font_texto = _carregar_fonte(regular_path, 40)
+        font_ref = _carregar_fonte(bold_path, 44)
+        font_marca = _carregar_fonte(regular_path, 36)
 
         draw.rectangle([(60, 60), (largura-60, altura-60)], outline=(255, 255, 255, 150), width=3)
 
@@ -142,12 +174,10 @@ def _gerar_imagem_simples(ref: str, texto: str) -> io.BytesIO:
         import textwrap
         img = Image.new("RGB", (800, 600), color=(41, 128, 185))
         draw = ImageDraw.Draw(img)
-        try:
-            font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 30)
-            font_ref = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 34)
-        except:
-            font = ImageFont.load_default()
-            font_ref = ImageFont.load_default()
+        bold_path = _encontrar_fonte("DejaVuSans-Bold.ttf")
+        regular_path = _encontrar_fonte("DejaVuSans.ttf")
+        font = _carregar_fonte(regular_path, 30)
+        font_ref = _carregar_fonte(bold_path, 34)
         linhas = textwrap.wrap(f'"{texto}"', width=40)
         y = 100
         for linha in linhas:
