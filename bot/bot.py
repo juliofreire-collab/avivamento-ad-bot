@@ -1,6 +1,7 @@
 import logging
 import sys
-from telegram import BotCommand, BotCommandScopeAllGroupChats, BotCommandScopeAllPrivateChats, BotCommandScopeDefault
+import time
+from telegram import BotCommand, BotCommandScopeAllPrivateChats, BotCommandScopeDefault
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
 )
@@ -101,21 +102,17 @@ async def post_init(app):
     except Exception as e:
         logger.error(f"Erro ao configurar comandos: {e}")
 
-def main():
-    if not BOT_TOKEN:
-        logger.error("BOT_TOKEN não configurado!")
-        sys.exit(1)
-
-    logger.info("🚀 Iniciando Bot Avivamento AD...")
-
-    try:
-        from database import init_db
-        init_db()
-    except Exception as e:
-        logger.error(f"❌ Falha ao inicializar banco de dados: {e}")
-        sys.exit(1)
-
-    app = Application.builder().token(BOT_TOKEN).post_init(post_init).build()
+def build_app():
+    app = (
+        Application.builder()
+        .token(BOT_TOKEN)
+        .connect_timeout(30)
+        .read_timeout(30)
+        .write_timeout(30)
+        .pool_timeout(30)
+        .post_init(post_init)
+        .build()
+    )
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("ping", cmd_ping))
@@ -186,9 +183,39 @@ def main():
     app.add_handler(CallbackQueryHandler(handle_aceitar_regras, pattern=r"^aceitar_regras:"))
 
     configurar_agendamentos(app)
+    return app
 
-    logger.info("✅ Bot iniciado! Aguardando mensagens 24/7...")
-    app.run_polling(drop_pending_updates=True)
+def main():
+    if not BOT_TOKEN:
+        logger.error("BOT_TOKEN não configurado!")
+        sys.exit(1)
+
+    logger.info("🚀 Iniciando Bot Avivamento AD...")
+
+    try:
+        from database import init_db
+        init_db()
+    except Exception as e:
+        logger.error(f"❌ Falha ao inicializar banco de dados: {e}")
+        sys.exit(1)
+
+    retry_delay = 5
+    while True:
+        try:
+            logger.info("▶️  Construindo e iniciando polling...")
+            app = build_app()
+            app.run_polling(
+                drop_pending_updates=True,
+                allowed_updates=None,
+                timeout=30,
+                poll_interval=1.0,
+            )
+            logger.info("Polling encerrado normalmente.")
+            break
+        except Exception as e:
+            logger.error(f"❌ Erro no polling: {e}. Reiniciando em {retry_delay}s...")
+            time.sleep(retry_delay)
+            retry_delay = min(retry_delay * 2, 60)
 
 if __name__ == "__main__":
     main()
