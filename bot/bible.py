@@ -1,6 +1,7 @@
 import random
 import io
 import os
+import math
 import logging
 import subprocess
 from datetime import datetime
@@ -40,6 +41,80 @@ def _carregar_fonte(path: str | None, tamanho: int):
         except Exception:
             pass
     return ImageFont.load_default()
+
+def _desenhar_logo_ad(draw, cx: int, top_y: int):
+    """
+    Desenha o símbolo da Assembleia de Deus:
+    chama tripla estilizada com halo dourado.
+    """
+    base_y = top_y + 155
+
+    # --- Halo dourado circular de fundo ---
+    halo_r = 72
+    halo_cx = cx
+    halo_cy = base_y - 40
+    for r in range(halo_r, halo_r - 18, -1):
+        alpha_factor = (halo_r - r) / 18
+        red   = int(255)
+        green = int(200 + 55 * alpha_factor)
+        blue  = int(0)
+        draw.ellipse(
+            [halo_cx - r, halo_cy - r, halo_cx + r, halo_cy + r],
+            outline=(red, green, blue)
+        )
+
+    # --- Chama esquerda (menor, laranja escuro) ---
+    fl = [
+        (cx - 42, base_y),
+        (cx - 10, base_y),
+        (cx - 10, base_y - 20),
+        (cx - 26, base_y - 90),
+    ]
+    draw.polygon(fl, fill=(220, 80, 0))
+
+    # --- Chama direita (menor, laranja escuro) ---
+    fr = [
+        (cx + 10, base_y),
+        (cx + 42, base_y),
+        (cx + 26, base_y - 90),
+        (cx + 10, base_y - 20),
+    ]
+    draw.polygon(fr, fill=(220, 80, 0))
+
+    # --- Chama central grande (laranja dourado) ---
+    fc = [
+        (cx - 48, base_y),
+        (cx + 48, base_y),
+        (cx + 20, base_y - 60),
+        (cx,      base_y - 148),
+        (cx - 20, base_y - 60),
+    ]
+    draw.polygon(fc, fill=(255, 160, 0))
+
+    # --- Chama interna (amarelo ouro) ---
+    fi = [
+        (cx - 28, base_y),
+        (cx + 28, base_y),
+        (cx + 10, base_y - 55),
+        (cx,      base_y - 110),
+        (cx - 10, base_y - 55),
+    ]
+    draw.polygon(fi, fill=(255, 215, 0))
+
+    # --- Núcleo brilhante (branco-amarelado) ---
+    fn = [
+        (cx - 12, base_y - 5),
+        (cx + 12, base_y - 5),
+        (cx + 4,  base_y - 60),
+        (cx,      base_y - 85),
+        (cx - 4,  base_y - 60),
+    ]
+    draw.polygon(fn, fill=(255, 252, 180))
+
+    # --- Base circular da tocha ---
+    draw.ellipse([cx - 32, base_y - 14, cx + 32, base_y + 14], fill=(200, 130, 30))
+    draw.ellipse([cx - 22, base_y - 8,  cx + 22, base_y + 8],  fill=(230, 180, 60))
+
 
 VERSICULOS = [
     ("Filipenses 4:13", "Tudo posso naquele que me fortalece."),
@@ -109,6 +184,7 @@ def gerar_imagem_versiculo():
         img = Image.new("RGB", (largura, altura))
         draw = ImageDraw.Draw(img)
 
+        # Gradiente de fundo
         for y in range(altura):
             ratio = y / altura
             r = int(cor1[0] + (cor2[0] - cor1[0]) * ratio)
@@ -116,46 +192,67 @@ def gerar_imagem_versiculo():
             b = int(cor1[2] + (cor2[2] - cor1[2]) * ratio)
             draw.line([(0, y), (largura, y)], fill=(r, g, b))
 
+        # Overlay escuro semitransparente
         overlay = Image.new("RGBA", (largura, altura), (0, 0, 0, 80))
         img = img.convert("RGBA")
         img = Image.alpha_composite(img, overlay)
         img = img.convert("RGB")
         draw = ImageDraw.Draw(img)
 
+        # Fontes
         bold_path = _encontrar_fonte("DejaVuSans-Bold.ttf")
         regular_path = _encontrar_fonte("DejaVuSans.ttf")
-        font_titulo = _carregar_fonte(bold_path, 52)
-        font_texto = _carregar_fonte(regular_path, 40)
-        font_ref = _carregar_fonte(bold_path, 44)
-        font_marca = _carregar_fonte(regular_path, 36)
+        font_titulo = _carregar_fonte(bold_path, 48)
+        font_texto  = _carregar_fonte(regular_path, 38)
+        font_ref    = _carregar_fonte(bold_path, 42)
+        font_ad     = _carregar_fonte(bold_path, 30)
+        font_marca  = _carregar_fonte(regular_path, 30)
 
-        draw.rectangle([(60, 60), (largura-60, altura-60)], outline=(255, 255, 255, 150), width=3)
+        # Borda elegante
+        draw.rectangle([(60, 60), (largura - 60, altura - 60)], outline=(255, 255, 255, 150), width=3)
 
-        titulo = "🔥  Avivamento AD  🔥"
+        # ── SÍMBOLO DA ASSEMBLEIA DE DEUS ──────────────────────────────
+        cx = largura // 2
+        logo_top = 80
+        _desenhar_logo_ad(draw, cx, logo_top)
+
+        # Texto "ASSEMBLEIA DE DEUS" abaixo do símbolo
+        nome_ad = "ASSEMBLEIA DE DEUS"
+        bbox = draw.textbbox((0, 0), nome_ad, font=font_ad)
+        w = bbox[2] - bbox[0]
+        draw.text(((largura - w) / 2, 258), nome_ad, font=font_ad, fill=(255, 225, 100))
+
+        # ── LINHA SEPARADORA ───────────────────────────────────────────
+        draw.line([(120, 310), (largura - 120, 310)], fill=(255, 255, 255, 180), width=2)
+
+        # ── TÍTULO DO BOT ──────────────────────────────────────────────
+        titulo = "Palavra de Avivamento"
         bbox = draw.textbbox((0, 0), titulo, font=font_titulo)
         w = bbox[2] - bbox[0]
-        draw.text(((largura - w) / 2, 110), titulo, font=font_titulo, fill=(255, 255, 255))
+        draw.text(((largura - w) / 2, 330), titulo, font=font_titulo, fill=(255, 255, 255))
 
-        draw.line([(150, 190), (largura-150, 190)], fill=(255, 255, 255, 180), width=2)
-
-        linhas = textwrap.wrap(f'"{texto}"', width=32)
-        y_texto = 240
+        # ── VERSÍCULO ──────────────────────────────────────────────────
+        linhas = textwrap.wrap(f'"{texto}"', width=30)
+        y_texto = 410
         for linha in linhas:
             bbox = draw.textbbox((0, 0), linha, font=font_texto)
             w = bbox[2] - bbox[0]
             draw.text(((largura - w) / 2, y_texto), linha, font=font_texto, fill=(255, 255, 255))
-            y_texto += 55
+            y_texto += 52
 
-        draw.line([(150, y_texto + 20), (largura-150, y_texto + 20)], fill=(255, 255, 255, 180), width=2)
+        # ── LINHA SEPARADORA ───────────────────────────────────────────
+        draw.line([(120, y_texto + 20), (largura - 120, y_texto + 20)], fill=(255, 255, 255, 180), width=2)
 
+        # ── REFERÊNCIA BÍBLICA ─────────────────────────────────────────
         bbox = draw.textbbox((0, 0), f"— {ref}", font=font_ref)
         w = bbox[2] - bbox[0]
-        draw.text(((largura - w) / 2, y_texto + 45), f"— {ref}", font=font_ref, fill=(255, 255, 220))
+        draw.text(((largura - w) / 2, y_texto + 44), f"— {ref}", font=font_ref, fill=(255, 255, 180))
 
-        marca = "🕊️  Palavra de Vida  🕊️"
+        # ── RODAPÉ ─────────────────────────────────────────────────────
+        marca = "Avivamento AD  |  Palavra de Vida"
         bbox = draw.textbbox((0, 0), marca, font=font_marca)
         w = bbox[2] - bbox[0]
-        draw.text(((largura - w) / 2, altura - 130), marca, font=font_marca, fill=(255, 255, 255, 200))
+        draw.text(((largura - w) / 2, altura - 110), marca, font=font_marca, fill=(255, 255, 255))
 
         buf = io.BytesIO()
         img.save(buf, format="JPEG", quality=95)
@@ -178,8 +275,13 @@ def _gerar_imagem_simples(ref: str, texto: str) -> io.BytesIO:
         regular_path = _encontrar_fonte("DejaVuSans.ttf")
         font = _carregar_fonte(regular_path, 30)
         font_ref = _carregar_fonte(bold_path, 34)
+        _desenhar_logo_ad(draw, 400, 20)
+        nome_ad = "ASSEMBLEIA DE DEUS"
+        bbox = draw.textbbox((0, 0), nome_ad, font=font_ref)
+        w = bbox[2] - bbox[0]
+        draw.text(((800 - w) / 2, 185), nome_ad, font=font_ref, fill=(255, 225, 100))
         linhas = textwrap.wrap(f'"{texto}"', width=40)
-        y = 100
+        y = 240
         for linha in linhas:
             draw.text((50, y), linha, font=font, fill=(255, 255, 255))
             y += 45
