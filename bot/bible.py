@@ -1,13 +1,16 @@
 import random
 import io
 import os
-import math
 import logging
 import subprocess
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+# ── Caminho do logo AD ───────────────────────────────────────────────────────
+_LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ad_logo.png")
+
+# ── Helpers de fonte ─────────────────────────────────────────────────────────
 def _encontrar_fonte(nome_arquivo: str) -> str | None:
     candidatos = [
         f"/usr/share/fonts/truetype/dejavu/{nome_arquivo}",
@@ -20,7 +23,7 @@ def _encontrar_fonte(nome_arquivo: str) -> str | None:
         familia = "DejaVu Sans:style=Bold" if "Bold" in nome_arquivo else "DejaVu Sans:style=Book"
         resultado = subprocess.run(
             ["fc-list", f":{familia}", "--format=%{{file}}\n"],
-            capture_output=True, text=True, timeout=5
+            capture_output=True, text=True, timeout=5,
         )
         for linha in resultado.stdout.strip().split("\n"):
             linha = linha.strip()
@@ -42,80 +45,7 @@ def _carregar_fonte(path: str | None, tamanho: int):
             pass
     return ImageFont.load_default()
 
-def _desenhar_logo_ad(draw, cx: int, top_y: int):
-    """
-    Desenha o símbolo da Assembleia de Deus:
-    chama tripla estilizada com halo dourado.
-    """
-    base_y = top_y + 155
-
-    # --- Halo dourado circular de fundo ---
-    halo_r = 72
-    halo_cx = cx
-    halo_cy = base_y - 40
-    for r in range(halo_r, halo_r - 18, -1):
-        alpha_factor = (halo_r - r) / 18
-        red   = int(255)
-        green = int(200 + 55 * alpha_factor)
-        blue  = int(0)
-        draw.ellipse(
-            [halo_cx - r, halo_cy - r, halo_cx + r, halo_cy + r],
-            outline=(red, green, blue)
-        )
-
-    # --- Chama esquerda (menor, laranja escuro) ---
-    fl = [
-        (cx - 42, base_y),
-        (cx - 10, base_y),
-        (cx - 10, base_y - 20),
-        (cx - 26, base_y - 90),
-    ]
-    draw.polygon(fl, fill=(220, 80, 0))
-
-    # --- Chama direita (menor, laranja escuro) ---
-    fr = [
-        (cx + 10, base_y),
-        (cx + 42, base_y),
-        (cx + 26, base_y - 90),
-        (cx + 10, base_y - 20),
-    ]
-    draw.polygon(fr, fill=(220, 80, 0))
-
-    # --- Chama central grande (laranja dourado) ---
-    fc = [
-        (cx - 48, base_y),
-        (cx + 48, base_y),
-        (cx + 20, base_y - 60),
-        (cx,      base_y - 148),
-        (cx - 20, base_y - 60),
-    ]
-    draw.polygon(fc, fill=(255, 160, 0))
-
-    # --- Chama interna (amarelo ouro) ---
-    fi = [
-        (cx - 28, base_y),
-        (cx + 28, base_y),
-        (cx + 10, base_y - 55),
-        (cx,      base_y - 110),
-        (cx - 10, base_y - 55),
-    ]
-    draw.polygon(fi, fill=(255, 215, 0))
-
-    # --- Núcleo brilhante (branco-amarelado) ---
-    fn = [
-        (cx - 12, base_y - 5),
-        (cx + 12, base_y - 5),
-        (cx + 4,  base_y - 60),
-        (cx,      base_y - 85),
-        (cx - 4,  base_y - 60),
-    ]
-    draw.polygon(fn, fill=(255, 252, 180))
-
-    # --- Base circular da tocha ---
-    draw.ellipse([cx - 32, base_y - 14, cx + 32, base_y + 14], fill=(200, 130, 30))
-    draw.ellipse([cx - 22, base_y - 8,  cx + 22, base_y + 8],  fill=(230, 180, 60))
-
-
+# ── Dados ────────────────────────────────────────────────────────────────────
 VERSICULOS = [
     ("Filipenses 4:13", "Tudo posso naquele que me fortalece."),
     ("João 3:16", "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna."),
@@ -172,6 +102,45 @@ def get_saudacao():
     else:
         return "🌙 Boa noite, família!"
 
+# ── Fonte adaptativa ─────────────────────────────────────────────────────────
+def _calcular_layout_texto(texto_completo: str, bold_path, regular_path,
+                            largura_max: int, altura_max: int):
+    """
+    Escolhe o maior tamanho de fonte que faz o texto caber em altura_max.
+    Retorna (font_texto, font_ref, linhas, line_h).
+    """
+    import textwrap
+    from PIL import ImageFont, ImageDraw, Image
+
+    # Configurações candidatas: (font_size, chars_por_linha, line_height)
+    configs = [
+        (62, 22, 80),
+        (54, 24, 72),
+        (46, 28, 62),
+        (40, 32, 55),
+        (35, 36, 50),
+        (30, 40, 45),
+    ]
+
+    # Imagem temporária para medir textbbox
+    tmp = Image.new("RGB", (largura_max, altura_max))
+    draw_tmp = ImageDraw.Draw(tmp)
+
+    for font_size, chars, line_h in configs:
+        font_t = _carregar_fonte(regular_path, font_size)
+        linhas = textwrap.wrap(f'"{texto_completo}"', width=chars)
+        total_h = len(linhas) * line_h
+        if total_h <= altura_max:
+            font_r = _carregar_fonte(bold_path, max(font_size - 4, 28))
+            return font_t, font_r, linhas, line_h
+
+    # fallback mínimo
+    font_t = _carregar_fonte(regular_path, 28)
+    font_r = _carregar_fonte(bold_path, 26)
+    linhas = textwrap.wrap(f'"{texto_completo}"', width=44)
+    return font_t, font_r, linhas, 42
+
+
 def gerar_imagem_versiculo():
     try:
         from PIL import Image, ImageDraw, ImageFont
@@ -180,79 +149,97 @@ def gerar_imagem_versiculo():
         ref, texto = get_versiculo_texto()
 
         cor1, cor2 = random.choice(CORES_GRADIENTE)
-        largura, altura = 1080, 1080
-        img = Image.new("RGB", (largura, altura))
+        W, H = 1080, 1080
+        img = Image.new("RGB", (W, H))
         draw = ImageDraw.Draw(img)
 
-        # Gradiente de fundo
-        for y in range(altura):
-            ratio = y / altura
+        # ── Gradiente de fundo ───────────────────────────────────────────
+        for y in range(H):
+            ratio = y / H
             r = int(cor1[0] + (cor2[0] - cor1[0]) * ratio)
             g = int(cor1[1] + (cor2[1] - cor1[1]) * ratio)
             b = int(cor1[2] + (cor2[2] - cor1[2]) * ratio)
-            draw.line([(0, y), (largura, y)], fill=(r, g, b))
+            draw.line([(0, y), (W, y)], fill=(r, g, b))
 
-        # Overlay escuro semitransparente
-        overlay = Image.new("RGBA", (largura, altura), (0, 0, 0, 80))
+        overlay = Image.new("RGBA", (W, H), (0, 0, 0, 70))
         img = img.convert("RGBA")
         img = Image.alpha_composite(img, overlay)
         img = img.convert("RGB")
         draw = ImageDraw.Draw(img)
 
-        # Fontes
-        bold_path = _encontrar_fonte("DejaVuSans-Bold.ttf")
+        # ── Borda ────────────────────────────────────────────────────────
+        draw.rectangle([(55, 55), (W - 55, H - 55)], outline=(255, 255, 255), width=3)
+
+        # ── Logo da Assembleia de Deus ───────────────────────────────────
+        LOGO_H = 290          # altura reservada para o logo na imagem
+        logo_y_start = 72
+
+        if os.path.exists(_LOGO_PATH):
+            logo = Image.open(_LOGO_PATH).convert("RGBA")
+            # Redimensionar mantendo proporção para caber em LOGO_H
+            logo_w_orig, logo_h_orig = logo.size
+            scale = LOGO_H / logo_h_orig
+            logo_w = int(logo_w_orig * scale)
+            logo = logo.resize((logo_w, LOGO_H), Image.LANCZOS)
+            # Colar centralizado
+            paste_x = (W - logo_w) // 2
+            img_rgba = img.convert("RGBA")
+            img_rgba.paste(logo, (paste_x, logo_y_start), logo)
+            img = img_rgba.convert("RGB")
+            draw = ImageDraw.Draw(img)
+        else:
+            # Fallback: texto se logo não encontrado
+            bold_path_fb = _encontrar_fonte("DejaVuSans-Bold.ttf")
+            fb_font = _carregar_fonte(bold_path_fb, 38)
+            draw.text((W // 2, logo_y_start + LOGO_H // 2), "Assembleia de Deus",
+                      font=fb_font, fill=(255, 225, 100), anchor="mm")
+
+        # ── Separador após logo ──────────────────────────────────────────
+        sep1_y = logo_y_start + LOGO_H + 16
+        draw.line([(100, sep1_y), (W - 100, sep1_y)], fill=(255, 255, 255), width=2)
+
+        # ── Área de texto disponível ─────────────────────────────────────
+        BOTTOM_RESERVE = 130   # espaço para referência + rodapé + separador
+        texto_y_start = sep1_y + 22
+        texto_y_end   = H - 55 - BOTTOM_RESERVE
+        texto_area_h  = texto_y_end - texto_y_start   # pixels disponíveis
+
+        # ── Fontes adaptativas ───────────────────────────────────────────
+        bold_path    = _encontrar_fonte("DejaVuSans-Bold.ttf")
         regular_path = _encontrar_fonte("DejaVuSans.ttf")
-        font_titulo = _carregar_fonte(bold_path, 48)
-        font_texto  = _carregar_fonte(regular_path, 38)
-        font_ref    = _carregar_fonte(bold_path, 42)
-        font_ad     = _carregar_fonte(bold_path, 30)
-        font_marca  = _carregar_fonte(regular_path, 30)
 
-        # Borda elegante
-        draw.rectangle([(60, 60), (largura - 60, altura - 60)], outline=(255, 255, 255, 150), width=3)
+        font_verso, font_ref, linhas, line_h = _calcular_layout_texto(
+            texto, bold_path, regular_path,
+            W - 140, texto_area_h
+        )
+        font_rodape = _carregar_fonte(regular_path, 28)
 
-        # ── SÍMBOLO DA ASSEMBLEIA DE DEUS ──────────────────────────────
-        cx = largura // 2
-        logo_top = 80
-        _desenhar_logo_ad(draw, cx, logo_top)
+        # Centralizar bloco de texto verticalmente no espaço disponível
+        bloco_h = len(linhas) * line_h
+        y_offset = texto_y_start + max(0, (texto_area_h - bloco_h) // 2)
 
-        # Texto "ASSEMBLEIA DE DEUS" abaixo do símbolo
-        nome_ad = "ASSEMBLEIA DE DEUS"
-        bbox = draw.textbbox((0, 0), nome_ad, font=font_ad)
-        w = bbox[2] - bbox[0]
-        draw.text(((largura - w) / 2, 258), nome_ad, font=font_ad, fill=(255, 225, 100))
-
-        # ── LINHA SEPARADORA ───────────────────────────────────────────
-        draw.line([(120, 310), (largura - 120, 310)], fill=(255, 255, 255, 180), width=2)
-
-        # ── TÍTULO DO BOT ──────────────────────────────────────────────
-        titulo = "Palavra de Avivamento"
-        bbox = draw.textbbox((0, 0), titulo, font=font_titulo)
-        w = bbox[2] - bbox[0]
-        draw.text(((largura - w) / 2, 330), titulo, font=font_titulo, fill=(255, 255, 255))
-
-        # ── VERSÍCULO ──────────────────────────────────────────────────
-        linhas = textwrap.wrap(f'"{texto}"', width=30)
-        y_texto = 410
+        # ── Versículo ────────────────────────────────────────────────────
         for linha in linhas:
-            bbox = draw.textbbox((0, 0), linha, font=font_texto)
+            bbox = draw.textbbox((0, 0), linha, font=font_verso)
             w = bbox[2] - bbox[0]
-            draw.text(((largura - w) / 2, y_texto), linha, font=font_texto, fill=(255, 255, 255))
-            y_texto += 52
+            draw.text(((W - w) / 2, y_offset), linha, font=font_verso, fill=(255, 255, 255))
+            y_offset += line_h
 
-        # ── LINHA SEPARADORA ───────────────────────────────────────────
-        draw.line([(120, y_texto + 20), (largura - 120, y_texto + 20)], fill=(255, 255, 255, 180), width=2)
+        # ── Separador antes da referência ────────────────────────────────
+        sep2_y = H - 55 - BOTTOM_RESERVE + 10
+        draw.line([(100, sep2_y), (W - 100, sep2_y)], fill=(255, 255, 255), width=2)
 
-        # ── REFERÊNCIA BÍBLICA ─────────────────────────────────────────
-        bbox = draw.textbbox((0, 0), f"— {ref}", font=font_ref)
+        # ── Referência bíblica ───────────────────────────────────────────
+        ref_text = f"— {ref}"
+        bbox = draw.textbbox((0, 0), ref_text, font=font_ref)
         w = bbox[2] - bbox[0]
-        draw.text(((largura - w) / 2, y_texto + 44), f"— {ref}", font=font_ref, fill=(255, 255, 180))
+        draw.text(((W - w) / 2, sep2_y + 18), ref_text, font=font_ref, fill=(255, 255, 180))
 
-        # ── RODAPÉ ─────────────────────────────────────────────────────
-        marca = "Avivamento AD  |  Palavra de Vida"
-        bbox = draw.textbbox((0, 0), marca, font=font_marca)
+        # ── Rodapé ───────────────────────────────────────────────────────
+        rodape = "Avivamento AD  |  Palavra de Vida"
+        bbox = draw.textbbox((0, 0), rodape, font=font_rodape)
         w = bbox[2] - bbox[0]
-        draw.text(((largura - w) / 2, altura - 110), marca, font=font_marca, fill=(255, 255, 255))
+        draw.text(((W - w) / 2, H - 55 - 42), rodape, font=font_rodape, fill=(220, 220, 255))
 
         buf = io.BytesIO()
         img.save(buf, format="JPEG", quality=95)
@@ -265,23 +252,30 @@ def gerar_imagem_versiculo():
         buf = _gerar_imagem_simples(ref, texto)
         return buf, ref, texto
 
+
 def _gerar_imagem_simples(ref: str, texto: str) -> io.BytesIO:
     try:
-        from PIL import Image, ImageDraw, ImageFont
+        from PIL import Image, ImageDraw
         import textwrap
-        img = Image.new("RGB", (800, 600), color=(41, 128, 185))
+        W, H = 800, 600
+        img = Image.new("RGB", (W, H), color=(41, 128, 185))
         draw = ImageDraw.Draw(img)
         bold_path = _encontrar_fonte("DejaVuSans-Bold.ttf")
         regular_path = _encontrar_fonte("DejaVuSans.ttf")
         font = _carregar_fonte(regular_path, 30)
         font_ref = _carregar_fonte(bold_path, 34)
-        _desenhar_logo_ad(draw, 400, 20)
-        nome_ad = "ASSEMBLEIA DE DEUS"
-        bbox = draw.textbbox((0, 0), nome_ad, font=font_ref)
-        w = bbox[2] - bbox[0]
-        draw.text(((800 - w) / 2, 185), nome_ad, font=font_ref, fill=(255, 225, 100))
+
+        if os.path.exists(_LOGO_PATH):
+            from PIL import Image as PILImage
+            logo = PILImage.open(_LOGO_PATH).convert("RGBA")
+            logo = logo.resize((140, 140), PILImage.LANCZOS)
+            img_rgba = img.convert("RGBA")
+            img_rgba.paste(logo, ((W - 140) // 2, 20), logo)
+            img = img_rgba.convert("RGB")
+            draw = ImageDraw.Draw(img)
+
         linhas = textwrap.wrap(f'"{texto}"', width=40)
-        y = 240
+        y = 175
         for linha in linhas:
             draw.text((50, y), linha, font=font, fill=(255, 255, 255))
             y += 45
@@ -292,5 +286,4 @@ def _gerar_imagem_simples(ref: str, texto: str) -> io.BytesIO:
         return buf
     except Exception as e:
         logger.error(f"Erro ao gerar imagem simples: {e}")
-        buf = io.BytesIO(b"")
-        return buf
+        return io.BytesIO(b"")
