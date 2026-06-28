@@ -69,13 +69,13 @@ async def handle_saida_membro(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def handle_aceitar_regras(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
     try:
         partes = query.data.split(":")
         user_id_alvo = int(partes[1])
         if query.from_user.id != user_id_alvo:
             await query.answer("⚠️ Estas regras são para outro membro.", show_alert=True)
             return
+        await query.answer()
         nome = query.from_user.first_name or "Membro"
         await query.edit_message_text(
             f"✅ *{nome}* aceitou as regras do grupo!\n\n"
