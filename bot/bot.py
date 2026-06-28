@@ -187,31 +187,41 @@ def build_app():
 
 def main():
     if not BOT_TOKEN:
-        logger.error("BOT_TOKEN não configurado!")
-        sys.exit(1)
+        logger.error("❌ BOT_TOKEN não configurado! Verifique as variáveis de ambiente no Railway.")
+        # Aguarda e retenta para não ser contado como "falha" pelo Railway
+        while True:
+            time.sleep(30)
 
     logger.info("🚀 Iniciando Bot Avivamento AD...")
 
-    try:
-        from database import init_db
-        init_db()
-    except Exception as e:
-        logger.error(f"❌ Falha ao inicializar banco de dados: {e}")
-        sys.exit(1)
+    # Inicializar banco com retry — nunca faz sys.exit para não esgotar restarts do Railway
+    db_tentativa = 0
+    while True:
+        try:
+            from database import init_db
+            init_db()
+            logger.info("✅ Banco de dados inicializado!")
+            break
+        except Exception as e:
+            db_tentativa += 1
+            espera = min(db_tentativa * 10, 120)
+            logger.error(f"❌ Falha ao inicializar banco (tentativa {db_tentativa}): {e}. Tentando em {espera}s...")
+            time.sleep(espera)
 
+    # Loop de polling com retry automático
     retry_delay = 5
     while True:
         try:
             logger.info("▶️  Construindo e iniciando polling...")
             app = build_app()
             app.run_polling(
-                drop_pending_updates=True,
+                drop_pending_updates=False,
                 allowed_updates=None,
                 timeout=30,
                 poll_interval=1.0,
             )
             logger.info("Polling encerrado normalmente.")
-            break
+            retry_delay = 5  # reset ao encerrar normalmente
         except Exception as e:
             logger.error(f"❌ Erro no polling: {e}. Reiniciando em {retry_delay}s...")
             time.sleep(retry_delay)
