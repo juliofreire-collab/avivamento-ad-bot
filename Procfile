@@ -1,1 +1,1 @@
-web: python src/main.py
+worker: cd bot && python bot.py
