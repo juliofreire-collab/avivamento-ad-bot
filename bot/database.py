@@ -18,7 +18,7 @@ def _get_dsn() -> str:
 @contextmanager
 def db():
     """Abre conexão, entrega cursor dict-like, commita e fecha automaticamente."""
-    conn = psycopg2.connect(_get_dsn())
+    conn = psycopg2.connect(_get_dsn(), connect_timeout=10)
     try:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             yield cur
