@@ -1,3 +1,7 @@
+import sys, os
+# Garante que imports locais funcionam independente do diretorio de execucao
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import logging
 import os
 import sys
