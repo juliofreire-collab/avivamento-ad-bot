@@ -1,6 +1,9 @@
 import logging
+import os
 import sys
 import time
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import BotCommand, BotCommandScopeAllPrivateChats, BotCommandScopeDefault
 from telegram.ext import (
     Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters
@@ -41,6 +44,29 @@ logging.basicConfig(
     handlers=_handlers
 )
 logger = logging.getLogger(__name__)
+
+# Status global do bot (para health-check)
+_bot_status = {"state": "starting", "uptime_start": time.time()}
+
+class _HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        body = f"state={_bot_status['state']} uptime={int(time.time()-_bot_status['uptime_start'])}s".encode()
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+    def log_message(self, *args):
+        pass  # silencia logs HTTP
+
+def _start_health_server():
+    port = int(os.getenv("PORT", "8080"))
+    try:
+        server = HTTPServer(("0.0.0.0", port), _HealthHandler)
+        logger.info(f"🌐 Health-check HTTP iniciado na porta {port}")
+        server.serve_forever()
+    except Exception as e:
+        logger.warning(f"Health-check HTTP não pôde iniciar: {e}")
 
 COMANDOS_USUARIOS = [
     BotCommand("start", "Iniciar o bot"),
@@ -186,15 +212,20 @@ def build_app():
     return app
 
 def main():
-    if not BOT_TOKEN:
-        logger.error("❌ BOT_TOKEN não configurado! Verifique as variáveis de ambiente no Railway.")
-        # Aguarda e retenta para não ser contado como "falha" pelo Railway
-        while True:
-            time.sleep(30)
+    # Inicia health-check HTTP antes de tudo (Railway precisa de resposta HTTP)
+    threading.Thread(target=_start_health_server, daemon=True).start()
 
     logger.info("🚀 Iniciando Bot Avivamento AD...")
+    logger.info(f"   BOT_TOKEN configurado: {'✅' if BOT_TOKEN else '❌'}")
+    logger.info(f"   DATABASE_URL configurado: {'✅' if os.getenv('DATABASE_URL') else '❌'}")
 
-    # Inicializar banco com retry — nunca faz sys.exit para não esgotar restarts do Railway
+    if not BOT_TOKEN:
+        logger.error("❌ BOT_TOKEN não configurado! Defina nas variáveis de ambiente do Railway.")
+        while True:
+            time.sleep(60)
+
+    # Inicializar banco com retry — nunca sys.exit para não esgotar restarts do Railway
+    _bot_status["state"] = "db_init"
     db_tentativa = 0
     while True:
         try:
@@ -209,6 +240,7 @@ def main():
             time.sleep(espera)
 
     # Loop de polling com retry automático
+    _bot_status["state"] = "polling"
     retry_delay = 5
     while True:
         try:
@@ -221,11 +253,13 @@ def main():
                 poll_interval=1.0,
             )
             logger.info("Polling encerrado normalmente.")
-            retry_delay = 5  # reset ao encerrar normalmente
+            retry_delay = 5
         except Exception as e:
+            _bot_status["state"] = "error"
             logger.error(f"❌ Erro no polling: {e}. Reiniciando em {retry_delay}s...")
             time.sleep(retry_delay)
             retry_delay = min(retry_delay * 2, 60)
+            _bot_status["state"] = "polling"
 
 if __name__ == "__main__":
     main()
