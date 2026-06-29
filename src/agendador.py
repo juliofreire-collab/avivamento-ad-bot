@@ -380,8 +380,8 @@ def configurar_agendamentos(app):
 
     jq.run_daily(postar_oracao_grupo, time=dtime(22, 0, tzinfo=tz))
 
-    for h in [6, 10, 14, 18, 22]:
-        jq.run_daily(postar_regras_grupo, time=dtime(h, 30, tzinfo=tz))
+    # Regras postadas 1x/dia às 8h (evitar spam)
+    jq.run_daily(postar_regras_grupo, time=dtime(8, 0, tzinfo=tz))
 
     # Segunda(0) às 10:30 e Quinta(3) às 19:00 — dias em esquema cron (0=Seg … 6=Dom)
     with warnings.catch_warnings():
