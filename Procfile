@@ -1,2 +1,2 @@
-web: cd src && python main.py
-worker: cd src && python main.py
+web: python src/main.py
+worker: python src/main.py
