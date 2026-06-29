@@ -47,12 +47,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Status global (health-check)
-_bot_status = {"state": "starting", "uptime_start": time.time()}
+_bot_status = {"state": "starting", "uptime_start": time.time(), "db": "pending"}
 
 
 class _HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        body = f"state={_bot_status['state']} uptime={int(time.time()-_bot_status['uptime_start'])}s".encode()
+        body = f"state={_bot_status['state']} db={_bot_status['db']} uptime={int(time.time()-_bot_status['uptime_start'])}s".encode()
         self.send_response(200)
         self.send_header("Content-Type", "text/plain")
         self.send_header("Content-Length", str(len(body)))
@@ -71,6 +71,29 @@ def _start_health_server():
         server.serve_forever()
     except Exception as e:
         logger.warning(f"Health-check HTTP nao pode iniciar: {e}")
+
+
+def _init_db_background():
+    """Inicializa banco em background — nunca bloqueia o polling."""
+    if not os.getenv("DATABASE_URL"):
+        logger.warning("DATABASE_URL nao configurado! Funcoes de banco desabilitadas.")
+        _bot_status["db"] = "disabled"
+        return
+
+    tentativa = 0
+    while True:
+        try:
+            from database import init_db
+            init_db()
+            logger.info("Banco de dados inicializado com sucesso!")
+            _bot_status["db"] = "ok"
+            return
+        except Exception as e:
+            tentativa += 1
+            espera = min(tentativa * 10, 120)
+            logger.error(f"Falha ao inicializar banco (tentativa {tentativa}): {e}. Tentando em {espera}s...")
+            _bot_status["db"] = f"retry_{tentativa}"
+            time.sleep(espera)
 
 
 COMANDOS_USUARIOS = [
@@ -220,8 +243,11 @@ def build_app():
 
 
 def main():
-    # Health-check HTTP em background (Railway monitoring)
+    # 1. Health-check HTTP em background (Railway monitoring)
     threading.Thread(target=_start_health_server, daemon=True).start()
+
+    # 2. Banco de dados em background — NAO bloqueia o polling
+    threading.Thread(target=_init_db_background, daemon=True).start()
 
     logger.info("Iniciando Bot Avivamento AD...")
     logger.info(f"BOT_TOKEN configurado: {'SIM' if BOT_TOKEN else 'NAO'}")
@@ -232,22 +258,7 @@ def main():
         while True:
             time.sleep(60)
 
-    # Inicializar banco com retry — nunca sys.exit para nao esgotar restarts
-    _bot_status["state"] = "db_init"
-    tentativa = 0
-    while True:
-        try:
-            from database import init_db
-            init_db()
-            logger.info("Banco de dados inicializado!")
-            break
-        except Exception as e:
-            tentativa += 1
-            espera = min(tentativa * 10, 120)
-            logger.error(f"Falha ao inicializar banco (tentativa {tentativa}): {e}. Tentando em {espera}s...")
-            time.sleep(espera)
-
-    # Loop de polling com retry automatico
+    # 3. Polling inicia imediatamente — sem esperar banco
     _bot_status["state"] = "polling"
     retry_delay = 5
     while True:
