@@ -247,7 +247,7 @@ def main():
             logger.info("▶️  Construindo e iniciando polling...")
             app = build_app()
             app.run_polling(
-                drop_pending_updates=False,
+                drop_pending_updates=True,
                 allowed_updates=None,
                 timeout=30,
                 poll_interval=1.0,
