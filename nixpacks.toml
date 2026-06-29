@@ -13,7 +13,7 @@ nixPkgs = [
 ]
 
 [phases.install]
-cmds = ["pip install --break-system-packages -r requirements.txt"]
+cmds = ["pip install --break-system-packages -r bot/requirements.txt"]
 
 [start]
 cmd = "cd src && python main.py"
