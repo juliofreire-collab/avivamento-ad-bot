@@ -15,4 +15,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["python", "src/main.py"]
+WORKDIR /app/src
+CMD ["python", "main.py"]
